@@ -741,73 +741,6 @@
       background: color-mix(in srgb, var(--bad-light) 40%, var(--bg-surface));
     }
 
-    /* Test Timeline / Table */
-    .timeline-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-top: 24px;
-    }
-
-    .timeline-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 140px 1fr 1fr;
-      gap: 18px;
-      align-items: start;
-      transition: border-color 0.15s ease;
-    }
-
-    .timeline-card:hover {
-      border-color: var(--border-subtle);
-    }
-
-    .timeline-round {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .timeline-round-num {
-      font-family: var(--font-heading);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .timeline-round-desc {
-      font-size: 0.85rem;
-      color: var(--text-soft);
-    }
-
-    .timeline-block {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9375rem;
-    }
-
-    .timeline-block-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-      letter-spacing: 0.04em;
-    }
-
-    .timeline-good .timeline-block-title { color: var(--opt); }
-    .timeline-flaw .timeline-block-title { color: var(--bad); }
-
-    @media (max-width: 768px) {
-      .timeline-card {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-    }
-
     /* Step-by-Step Cards */
     .step-list {
       display: flex;
@@ -974,80 +907,6 @@
 
     .traffic-card li strong {
       color: var(--text-main);
-    }
-
-    /* Interactive Calculator Box */
-    .calc-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .calc-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .calc-inputs {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .calc-field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .calc-field label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .calc-field input {
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      color: var(--text-main);
-      width: 100%;
-    }
-
-    .calc-result {
-      background: var(--opt-light);
-      border: 1px solid var(--opt-border);
-      border-radius: 10px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .calc-result-text {
-      font-size: 0.95rem;
-      color: var(--opt-text);
-      font-weight: 500;
-    }
-
-    .calc-result-number {
-      font-family: var(--font-mono);
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--opt);
     }
 
     /* Prompt Studio (Tabs & Code Viewer) */
@@ -1298,7 +1157,6 @@
         <ul class="nav-menu">
           <li><a href="#prompts-studio">Prompt พร้อมใช้</a></li>
           <li><a href="#concepts">แนวคิดหลัก</a></li>
-          <li><a href="#case-studies">ผลทดลอง 4 รอบ</a></li>
           <li><a href="#optimize-guide">Optimize</a></li>
           <li><a href="#compress-guide">Compress</a></li>
           <li><a href="#checklist">เช็กลิสต์</a></li>
@@ -1530,94 +1388,7 @@
       </div>
     </section>
 
-    <!-- Section 2: Case Studies -->
-    <section id="case-studies">
-      <div class="section-header">
-        <span class="badge badge-indigo">บทเรียนจากประสบการณ์จริง</span>
-        <h2>วิวัฒนาการทดสอบ 4 รอบกับ Gemini 3.8 Flash</h2>
-        <p>จากการนำ Prompt "คณะที่ปรึกษาเชิงกลยุทธ์" ไปทดสอบและจับข้อผิดพลาดละเอียดทุกลิงก์และทุกตัวเลข</p>
-      </div>
-
-      <div class="timeline-container">
-        <!-- Round 1 -->
-        <div class="timeline-card">
-          <div class="timeline-round">
-            <span class="timeline-round-num">รอบที่ 1</span>
-            <span class="timeline-round-desc">ฉบับผสมแรกเริ่ม</span>
-          </div>
-          <div class="timeline-block timeline-good">
-            <span class="timeline-block-title">จุดที่ได้ผล</span>
-            <p>ได้โครงสร้างบอร์ดที่ปรึกษาเบื้องต้น</p>
-          </div>
-          <div class="timeline-block timeline-flaw">
-            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
-            <p>อ้างอิงลิงก์ผิดบริบท, ตัวเลขหัวข้อ (1,200) ไม่ตรงกับสูตรคำนวณ (850), เกณฑ์ตัวชี้วัดไม่ตรงกันในแต่ละข้อ</p>
-          </div>
-        </div>
-
-        <!-- Round 2 -->
-        <div class="timeline-card">
-          <div class="timeline-round">
-            <span class="timeline-round-num">รอบที่ 2</span>
-            <span class="timeline-round-desc">v2 ใส่เลขกำกับกฎ</span>
-          </div>
-          <div class="timeline-block timeline-good">
-            <span class="timeline-block-title">จุดที่ได้ผล</span>
-            <p>ตัวเลขหัวข้อตรงกับสูตร เกณฑ์สอดคล้องกันมากขึ้น และมีกระบวนการ SELF-CHECK</p>
-          </div>
-          <div class="timeline-block timeline-flaw">
-            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
-            <p>นำลิงก์ TikTok สิงคโปร์มาใช้อ้างอิงแผนงาน YouTube, อ้างวันที่ผิด, ใช้คำสรุปเด็ดขาดเกินจริง</p>
-          </div>
-        </div>
-
-        <!-- Round 3 -->
-        <div class="timeline-card">
-          <div class="timeline-round">
-            <span class="timeline-round-num">รอบที่ 3</span>
-            <span class="timeline-round-desc">เพิ่มกฎ URL & เงื่อนไข</span>
-          </div>
-          <div class="timeline-block timeline-good">
-            <span class="timeline-block-title">จุดที่ได้ผล</span>
-            <p>ลิงก์ถูกต้องตรงหน้าครบ 4 URL, เงื่อนไขสั่งหยุดแผนงาน (Kill-switch) ปรับมาใช้ตรรกะ "หรือ" อย่างรัดกุม</p>
-          </div>
-          <div class="timeline-block timeline-flaw">
-            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
-            <p>เลือกอ้างอิงจากบทความบล็อกเก่าปี 2024 แทนหน้า Help Center ปัจจุบัน และลืมประมาณการรายได้</p>
-          </div>
-        </div>
-
-        <!-- Round 4 -->
-        <div class="timeline-card">
-          <div class="timeline-round">
-            <span class="timeline-round-num">รอบที่ 4</span>
-            <span class="timeline-round-desc">โครงสร้างสมบูรณ์ที่สุด</span>
-          </div>
-          <div class="timeline-block timeline-good">
-            <span class="timeline-block-title">จุดที่ได้ผล</span>
-            <p>โครงสร้างมีระเบียบที่สุด การแยกแยะมุมมองกลยุทธ์ชัดเจน การให้เหตุผลมีน้ำหนักสูง</p>
-          </div>
-          <div class="timeline-block timeline-flaw">
-            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
-            <p>AI บอกว่าหน้าเว็บ "ไม่ระบุวันที่" ทั้งที่หน้าเว็บมีวันที่ระบุชัดเจน และนำยอดวิวสะสมไปเทียบชนกับต้นทุนรายเดือน</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Critical Insight Box -->
-      <div class="callout callout-info">
-        <div class="callout-title">
-          <span aria-hidden="true">💡</span>
-          <span>ความจริงเกี่ยวกับ AI และการอ้างอิงลิงก์ภายนอก</span>
-        </div>
-        <p>
-          ข้อผิดพลาดเรื่อง "วันที่" และ "เนื้อหาในลิงก์" มักเกิดขึ้นซ้ำ เพราะในหลายสถานการณ์ <strong>โมเดลไม่ได้เปิดหน้าเว็บจริงขณะตอบ</strong> แต่ดึง URL มาจากความจำในพารามิเตอร์เดิม<br>
-          <strong>วิธีแก้ที่ได้ผลจริง:</strong> สั่งใน Prompt ชัดเจนว่า หากไม่ได้เปิดอ่านหน้าเว็บจริง ให้ระบุต่อท้ายว่า <code>(ยังไม่ได้เปิดยืนยัน)</code> และห้ามอ้างวันที่เด็ดขาด โดยต้องมีมนุษย์ช่วยตรวจทานลิงก์ซ้ำเสมอ
-        </p>
-      </div>
-    </section>
-
-    <!-- Section 3: Optimize Deep Dive -->
+    <!-- Section 2: Optimize Deep Dive -->
     <section id="optimize-guide">
       <div class="section-header">
         <span class="badge badge-opt">คู่มือเจาะลึก 1</span>
@@ -1755,41 +1526,6 @@
             <div><strong>กฎแก้:</strong> หากไม่มีหลักฐานชัดเจน ห้ามใช้คำเด็ดขาด ให้ปรับระดับคำพูดลงเพื่อความรอบคอบ</div>
           </div>
         </div>
-      </div>
-
-      <!-- Interactive Break-even Demo -->
-      <div class="calc-box">
-        <div class="calc-header">
-          <div>
-            <h4 style="font-size: 1.15rem; margin-bottom: 4px;">🧮 เครื่องมือจำลอง: ตรรกะจุดคุ้มทุนที่ถูกต้อง</h4>
-            <p style="font-size: 0.9rem;">ตัวอย่างการคำนวณเพื่อป้องกัน AI สับสนระหว่าง "ยอดสะสม" กับ "ยอดรายเดือน"</p>
-          </div>
-          <span class="badge badge-opt">Formula Validator</span>
-        </div>
-
-        <div class="calc-inputs">
-          <div class="calc-field">
-            <label for="cost-input">ต้นทุนคงที่ต่อเดือน ($)</label>
-            <input type="number" id="cost-input" value="30" min="1" step="1">
-          </div>
-          <div class="calc-field">
-            <label for="rpm-input">รายได้เฉลี่ยต่อพันวิว (RPM $)</label>
-            <input type="number" id="rpm-input" value="0.05" min="0.01" step="0.01">
-          </div>
-        </div>
-
-        <div class="calc-result">
-          <div class="calc-result-text">
-            <span>สูตร: <code>ต้นทุนรายเดือน ÷ RPM × 1,000</code></span><br>
-            <strong>ยอดวิวรายเดือนที่ต้องการเพื่อคุ้มทุน:</strong>
-          </div>
-          <div class="calc-result-number" id="calc-output">
-            600,000 วิว/เดือน
-          </div>
-        </div>
-        <p style="font-size: 0.85rem; color: var(--text-soft); margin-top: 10px;">
-          *ข้อสังเกต: หากตั้งเป้า 500,000 วิวสะสมตลอดชีพ จะไม่สามารถครอบคลุมต้นทุนรายเดือนได้ นี่คือบั๊กคลาสสิกที่พบบ่อยในการทดสอบรอบ 4
-        </p>
       </div>
     </section>
 
@@ -2109,23 +1845,7 @@ SELF-CHECK (silent; fix before sending)
         setTheme(current === 'dark' ? 'light' : 'dark');
       });
 
-      // 2. Break-even Calculator
-      var costInput = document.getElementById('cost-input');
-      var rpmInput = document.getElementById('rpm-input');
-      var calcOutput = document.getElementById('calc-output');
-
-      function updateCalculator() {
-        var cost = parseFloat(costInput.value) || 0;
-        var rpm = parseFloat(rpmInput.value) || 0.01;
-        if (rpm <= 0) rpm = 0.01;
-        var monthlyViews = Math.round((cost / rpm) * 1000);
-        calcOutput.textContent = monthlyViews.toLocaleString('th-TH') + ' วิว/เดือน';
-      }
-
-      costInput.addEventListener('input', updateCalculator);
-      rpmInput.addEventListener('input', updateCalculator);
-
-      // 3. Prompt Studio (Tabs & Code Switcher)
+      // 2. Prompt Studio (Tabs & Code Switcher)
       var tabOpt = document.getElementById('tab-btn-opt');
       var tabCmp = document.getElementById('tab-btn-cmp');
       var studioFilename = document.getElementById('studio-filename');

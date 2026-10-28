@@ -24,7 +24,7 @@ Prompt เดิม ➔ Step 1: Optimize (แก้ให้แม่นยำ) 
 
 | ไฟล์ | รายละเอียด |
 |---|---|
-| [`index.html`](index.html) | เว็บไซต์ Interactive คู่มือฉบับเต็ม ดีไซน์ใหม่ อ่านง่าย รองรับธีมสว่าง/มืด พร้อมระบบคัดลอก Prompt ทันที, เครื่องคิดเลขจุดคุ้มทุน และเช็กลิสต์ QA |
+| [`index.html`](index.html) | เว็บไซต์ Interactive คู่มือฉบับเต็ม ดีไซน์ใหม่ อ่านง่าย รองรับธีมสว่าง/มืด พร้อมระบบคัดลอก Prompt ทันที และเช็กลิสต์ QA |
 | [`prompt-optimizer.md`](prompt-optimizer.md) | Prompt แม่แบบ **"ผู้เชี่ยวชาญปรับปรุงคุณภาพ"** มุ่งเน้นความถูกต้องและซื่อตรง (Failure-driven rules + Honesty baseline) |
 | [`prompt-compressor.md`](prompt-compressor.md) | Prompt แม่แบบ **"ผู้เชี่ยวชาญย่อ Prompt"** ย่อขนาดโดยรักษาความสามารถครบ 100% (Safe Compression ladder + ห้ามใช้ DSL รหัสย่อ) |
 | [`strategic-board-prompt-v2.md`](strategic-board-prompt-v2.md) | กรณีศึกษา Prompt "คณะที่ปรึกษาเชิงกลยุทธ์" ฉบับจริงที่ผ่านการปรับปรุงกฎ R1–R12 และ SELF-CHECK |
@@ -59,7 +59,6 @@ Prompt เดิม ➔ Step 1: Optimize (แก้ให้แม่นยำ) 
 
 - 📖 **อ่านง่าย สบายตา:** ออกแบบ Typography สไตล์ Clean Editorial พร้อมลำดับสายตา (Visual Hierarchy) ชัดเจน
 - 🌗 **Dark / Light Mode:** รองรับทั้งโหมดมืดและสว่าง บันทึกค่าผ่าน LocalStorage
-- 🧮 **Interactive Calculator:** จำลองสูตรคำนวณจุดคุ้มทุนรายเดือน
 - 📋 **Prompt Studio:** คัดลอก Prompt ลงคลิปบอร์ดได้ทันที พร้อมปุ่มดาวน์โหลด `.md` ใช้งานได้ทั้งออนไลน์และออฟไลน์
 - ✅ **Pre-flight Checklist:** เช็กลิสต์แบบอินเทอร์แอคทีฟพร้อมแถบความคืบหน้า สำหรับตรวจสอบ Prompt ก่อนนำไปใช้งานจริง
 - ♿ **Web Interface Guidelines & Accessibility:** รองรับ Screen reader, ARIA tabs, keyboard navigation และ Skip to content
