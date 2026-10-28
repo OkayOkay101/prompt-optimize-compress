@@ -1296,11 +1296,11 @@
 
       <nav aria-label="สารบัญเนื้อหา">
         <ul class="nav-menu">
+          <li><a href="#prompts-studio">Prompt พร้อมใช้</a></li>
           <li><a href="#concepts">แนวคิดหลัก</a></li>
           <li><a href="#case-studies">ผลทดลอง 4 รอบ</a></li>
           <li><a href="#optimize-guide">Optimize</a></li>
           <li><a href="#compress-guide">Compress</a></li>
-          <li><a href="#prompts-studio">Prompt พร้อมใช้</a></li>
           <li><a href="#checklist">เช็กลิสต์</a></li>
         </ul>
       </nav>
@@ -1371,14 +1371,78 @@
             รับแม่แบบ Prompt Optimizer และ Compressor สำเร็จรูปนำไปใช้งานได้เลย
           </div>
           <div class="diag-action">
-            <span>ดู Prompt พร้อมใช้</span>
-            <span aria-hidden="true">→</span>
+            <span>คัดลอก Prompt ด้านล่างนี้</span>
+            <span aria-hidden="true">↓</span>
           </div>
         </a>
       </div>
     </header>
 
-    <!-- Section 1: Concepts -->
+    <!-- Section 1: Prompts Studio (หน้าแรกสุด พร้อมใช้งานทันที) -->
+    <section id="prompts-studio" style="padding-top: 40px;">
+      <div class="section-header">
+        <span class="badge badge-opt">Prompt สำเร็จรูป (Ready-to-Use)</span>
+        <h2>คลัง Prompt สำหรับนำไปใช้งานจริงทันที</h2>
+        <p>คัดลอก Prompt ผู้เชี่ยวชาญ 2 ตัวนี้ไปวางใน AI ของคุณ (เช่น Claude, ChatGPT หรือ Gemini) แล้วตามด้วย Prompt ที่คุณต้องการปรับแต่ง</p>
+      </div>
+
+      <div class="callout callout-info" style="margin-bottom: 20px;">
+        <div class="callout-title">
+          <span aria-hidden="true">📌</span>
+          <span>วิธีใช้งานอย่างถูกต้อง</span>
+        </div>
+        <p>หากต้องการทั้งสองอย่าง ให้เริ่มจากรัน <strong>Prompt Optimizer</strong> ก่อนจนได้เนื้อหาที่ถูกต้องและซื่อตรง แล้วจึงนำผลลัพธ์ที่ได้ไปรันต่อด้วย <strong>Prompt Compressor</strong> เพื่อตัดทอนความยาว (เลื่อนลงด้านล่างเพื่อศึกษาบทเรียนและวิธีคิดเบื้องหลัง)</p>
+      </div>
+
+      <!-- Studio Component -->
+      <div class="prompt-studio">
+        <!-- Tabs -->
+        <div class="studio-tabs" role="tablist" aria-label="เลือกดู Prompt">
+          <button id="tab-btn-opt" class="studio-tab-btn active tab-opt" role="tab" aria-selected="true" aria-controls="pane-opt" type="button">
+            <span>🎯</span>
+            <span>Prompt Optimizer (ตัวปรับความแม่น)</span>
+          </button>
+          <button id="tab-btn-cmp" class="studio-tab-btn tab-cmp" role="tab" aria-selected="false" aria-controls="pane-cmp" type="button">
+            <span>⚡</span>
+            <span>Prompt Compressor (ตัวย่อขนาด)</span>
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="studio-toolbar">
+          <div class="studio-meta">
+            <span id="studio-filename" style="font-weight: 600; color: var(--text-main);">prompt-optimizer.md</span>
+            <span id="studio-filesize">• 37 บรรทัด</span>
+          </div>
+
+          <div class="studio-actions">
+            <button id="copy-prompt-btn" class="btn btn-primary btn-sm" type="button">
+              <span id="copy-btn-icon" aria-hidden="true">📋</span>
+              <span id="copy-btn-text">คัดลอก Prompt</span>
+            </button>
+            <button id="download-prompt-btn" class="btn btn-secondary btn-sm" type="button" title="ดาวน์โหลดไฟล์ .md">
+              <span aria-hidden="true">💾</span>
+              <span>ดาวน์โหลด .md</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Code Content Area -->
+        <div id="studio-tabpanel" role="tabpanel" aria-labelledby="tab-btn-opt" class="code-container">
+          <pre id="code-display" class="code-pre" tabindex="0" aria-label="เนื้อหา Prompt แม่แบบ"></pre>
+        </div>
+      </div>
+
+      <!-- Reference Links -->
+      <div style="margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.95rem;">
+        <span>📂 <strong>ไฟล์ตัวอย่างประกอบ:</strong></span>
+        <a href="strategic-board-prompt-v2.md" target="_blank" rel="noopener">strategic-board-prompt-v2.md (Prompt บอร์ดกลยุทธ์ฉบับสมบูรณ์)</a>
+        <span>·</span>
+        <a href="gemini-test-review-2026-10-28.md" target="_blank" rel="noopener">gemini-test-review-2026-10-28.md (บันทึกผลตรวจละเอียดทุกลิงก์)</a>
+      </div>
+    </section>
+
+    <!-- Section 2: Concepts -->
     <section id="concepts">
       <div class="section-header">
         <span class="badge badge-indigo">แก่นความคิดสำคัญ</span>
@@ -1841,70 +1905,6 @@
             </li>
           </ul>
         </div>
-      </div>
-    </section>
-
-    <!-- Section 5: Prompts Studio -->
-    <section id="prompts-studio">
-      <div class="section-header">
-        <span class="badge badge-opt">Prompt สำเร็จรูป</span>
-        <h2>คลัง Prompt สำหรับนำไปใช้งานจริง (Ready-to-Use)</h2>
-        <p>นำ Prompt ผู้เชี่ยวชาญ 2 ตัวนี้ไปวางในโมเดลของคุณ (เช่น Claude, ChatGPT หรือ Gemini) แล้วตามด้วย Prompt ที่คุณต้องการปรับแต่ง</p>
-      </div>
-
-      <div class="callout callout-info" style="margin-bottom: 20px;">
-        <div class="callout-title">
-          <span aria-hidden="true">📌</span>
-          <span>วิธีใช้งานอย่างถูกต้อง</span>
-        </div>
-        <p>หากต้องการทั้งสองอย่าง ให้เริ่มจากรัน <strong>Prompt Optimizer</strong> ก่อนจนได้เนื้อหาที่ถูกต้องและซื่อตรง แล้วจึงนำผลลัพธ์ที่ได้ไปรันต่อด้วย <strong>Prompt Compressor</strong> เพื่อตัดทอนความยาว</p>
-      </div>
-
-      <!-- Studio Component -->
-      <div class="prompt-studio">
-        <!-- Tabs -->
-        <div class="studio-tabs" role="tablist" aria-label="เลือกดู Prompt">
-          <button id="tab-btn-opt" class="studio-tab-btn active tab-opt" role="tab" aria-selected="true" aria-controls="pane-opt" type="button">
-            <span>🎯</span>
-            <span>Prompt Optimizer (ตัวปรับความแม่น)</span>
-          </button>
-          <button id="tab-btn-cmp" class="studio-tab-btn tab-cmp" role="tab" aria-selected="false" aria-controls="pane-cmp" type="button">
-            <span>⚡</span>
-            <span>Prompt Compressor (ตัวย่อขนาด)</span>
-          </button>
-        </div>
-
-        <!-- Toolbar -->
-        <div class="studio-toolbar">
-          <div class="studio-meta">
-            <span id="studio-filename" style="font-weight: 600; color: var(--text-main);">prompt-optimizer.md</span>
-            <span id="studio-filesize">• 37 บรรทัด</span>
-          </div>
-
-          <div class="studio-actions">
-            <button id="copy-prompt-btn" class="btn btn-primary btn-sm" type="button">
-              <span id="copy-btn-icon" aria-hidden="true">📋</span>
-              <span id="copy-btn-text">คัดลอก Prompt</span>
-            </button>
-            <button id="download-prompt-btn" class="btn btn-secondary btn-sm" type="button" title="ดาวน์โหลดไฟล์ .md">
-              <span aria-hidden="true">💾</span>
-              <span>ดาวน์โหลด .md</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Code Content Area -->
-        <div id="studio-tabpanel" role="tabpanel" aria-labelledby="tab-btn-opt" class="code-container">
-          <pre id="code-display" class="code-pre" tabindex="0" aria-label="เนื้อหา Prompt แม่แบบ"></pre>
-        </div>
-      </div>
-
-      <!-- Reference Links -->
-      <div style="margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.95rem;">
-        <span>📂 <strong>ไฟล์ตัวอย่างประกอบ:</strong></span>
-        <a href="strategic-board-prompt-v2.md" target="_blank" rel="noopener">strategic-board-prompt-v2.md (Prompt บอร์ดกลยุทธ์ฉบับสมบูรณ์)</a>
-        <span>·</span>
-        <a href="gemini-test-review-2026-10-28.md" target="_blank" rel="noopener">gemini-test-review-2026-10-28.md (บันทึกผลตรวจละเอียดทุกลิงก์)</a>
       </div>
     </section>
 
