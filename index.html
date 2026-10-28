@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Optimize กับ Compress Prompt</title>
+<meta name="description" content="บทเรียนจากการทดสอบ prompt กับ Gemini จริง 4 รอบ: ทำให้ prompt แม่นขึ้น และย่อให้สั้นลงโดยความสามารถไม่หาย">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Bai+Jamjuree:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#f6f5f1;--surface:#fff;--fg:#1b1f1d;--muted:#5b625e;--line:#dedbd2;
+  --opt:#0f7a63;--opt-soft:#e2f2ec;--cmp:#7a4b0f;--cmp-soft:#f7ecdc;
+  --bad:#b3261e;--bad-soft:#fbe4e2;--code-bg:#16201c;--code-fg:#dbe9e4;
+  --f-d:"Bai Jamjuree","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-b:"IBM Plex Sans Thai",system-ui,"Segoe UI",sans-serif;
+  --f-m:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111513;--surface:#181e1b;--fg:#e4ebe7;--muted:#9fada6;--line:#2b3631;
+  --opt:#4cc9a6;--opt-soft:#15332a;--cmp:#f0b35c;--cmp-soft:#33260f;
+  --bad:#ff8a80;--bad-soft:#3a1c1a;--code-bg:#0b100e;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111513;--surface:#181e1b;--fg:#e4ebe7;--muted:#9fada6;--line:#2b3631;
+  --opt:#4cc9a6;--opt-soft:#15332a;--cmp:#f0b35c;--cmp-soft:#33260f;
+  --bad:#ff8a80;--bad-soft:#3a1c1a;--code-bg:#0b100e;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.8 var(--f-b);padding:0 16px}
+.wrap{max-width:860px;margin:0 auto}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
+nav .wrap{display:flex;gap:18px;overflow-x:auto;padding:12px 0;font-size:15px;white-space:nowrap}
+nav a{color:var(--muted);text-decoration:none}
+nav a:hover{color:var(--fg)}
+h1,h2,h3{font-family:var(--f-d);line-height:1.3;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,6vw,52px)}
+h2{font-size:clamp(24px,4vw,30px)}
+h3{font-size:19px}
+p{margin:0;max-width:66ch}
+header{padding:72px 0 40px;display:grid;gap:18px}
+.eyebrow{font:500 13px/1 var(--f-m);letter-spacing:.08em;text-transform:uppercase;color:var(--opt)}
+.lede{font-size:19px;color:var(--muted)}
+section{padding:44px 0;border-top:1px solid var(--line);display:grid;gap:20px}
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:10px;align-content:start}
+.card.opt{border-top:4px solid var(--opt)}
+.card.cmp{border-top:4px solid var(--cmp)}
+.card ul{margin:0;padding-left:20px}
+.pill{display:inline-block;font:500 12px/1 var(--f-m);padding:6px 10px;border-radius:999px;width:max-content}
+.p-opt{background:var(--opt-soft);color:var(--opt)}
+.p-cmp{background:var(--cmp-soft);color:var(--cmp)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.flow i{font-style:normal;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:15.5px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-size:13px;font-weight:600;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:14px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:38px 1fr;gap:14px}
+ol.steps li::before{content:counter(s);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font:600 15px var(--f-m);background:var(--opt-soft);color:var(--opt)}
+ol.steps.c li::before{background:var(--cmp-soft);color:var(--cmp)}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted)}
+.note{border-left:4px solid var(--cmp);background:var(--surface);padding:14px 18px;border-radius:0 10px 10px 0;color:var(--muted)}
+.prompt{background:var(--code-bg);color:var(--code-fg);border-radius:14px;overflow:hidden}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #ffffff1a;flex-wrap:wrap}
+.bar span{font:500 13px var(--f-m);color:#9fbfb4}
+.bar div{display:flex;gap:8px}
+button,.btn{font:600 14px var(--f-b);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;background:#2c3a35;color:#dbe9e4}
+button.primary{background:#4cc9a6;color:#04140f}
+button:focus-visible,.btn:focus-visible{outline:3px solid var(--cmp);outline-offset:2px}
+pre{margin:0;padding:18px 16px;font:13.5px/1.7 var(--f-m);white-space:pre-wrap;word-break:break-word;max-height:520px;overflow:auto}
+pre[hidden]{display:none}
+.check{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.check li{padding-left:30px;position:relative}
+.check li::before{content:"✓";position:absolute;left:0;top:0;color:var(--opt);font-weight:700}
+footer{border-top:1px solid var(--line);padding:32px 0 56px;color:var(--muted);font-size:14px}
+footer a,section a{color:var(--opt)}
+code{font:14.5px var(--f-m);background:var(--opt-soft);padding:1px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a href="#diff">ต่างกันอย่างไร</a><a href="#tests">ผลทดสอบ</a><a href="#optimize">Optimize</a><a href="#compress">Compress</a><a href="#prompts">Prompt สำเร็จรูป</a><a href="#checklist">เช็กลิสต์</a>
+</div></nav>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">บทเรียนจากการทดสอบจริง</div>
+  <h1>ทำ prompt ให้แม่นขึ้น แล้วค่อยทำให้สั้นลง</h1>
+  <p class="lede">สรุปจากการทดสอบ prompt "คณะที่ปรึกษาเชิงกลยุทธ์" กับ Gemini 4 รอบ ว่าอะไรทำให้คำตอบผิด กฎแบบไหนแก้ได้ และย่อ prompt อย่างไรให้ความสามารถไม่หาย</p>
+  <div class="flow"><span>Prompt เดิม</span><i>→</i><span style="border-color:var(--opt)">Optimize ให้แม่น</span><i>→</i><span style="border-color:var(--cmp)">Compress ให้สั้น</span><i>→</i><span>ทดสอบเทียบ</span></div>
+</header>
+
+<section id="diff">
+  <h2>Optimize กับ Compress ต่างกันอย่างไร</h2>
+  <p>สองงานนี้มีเป้าหมายต่างกัน ถ้าทำพร้อมกันมักได้ prompt ที่สั้นลงแต่ผิดมากขึ้น จึงควรแยกทำทีละขั้น</p>
+  <div class="duo">
+    <div class="card opt"><span class="pill p-opt">Optimize</span><h3>ทำให้ตอบถูกและซื่อตรงขึ้น</h3>
+      <ul><li>ความถูกต้องมาก่อน ยาวขึ้นได้ถ้าจำเป็น</li><li>เริ่มจากข้อผิดที่เจอในผลจริง</li><li>แปลงข้อผิดแต่ละจุดเป็นกฎ 1 บรรทัด</li></ul></div>
+    <div class="card cmp"><span class="pill p-cmp">Compress</span><h3>ทำให้สั้นลงโดยไม่เสียความสามารถ</h3>
+      <ul><li>ไม่เพิ่มกฎใหม่</li><li>ต้องทำรายการความสามารถก่อนตัด</li><li>ทุกความสามารถต้องชี้ได้ว่าอยู่ตรงไหนในฉบับย่อ</li></ul></div>
+  </div>
+</section>
+
+<section id="tests">
+  <h2>ผลทดสอบกับ Gemini 4 รอบ</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>รอบ</th><th>สิ่งที่ปรับ</th><th>ดีขึ้น</th><th>ยังผิด</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>ฉบับผสมแรก</td><td>—</td><td>อ้างลิงก์ผิดบริบท ตัวเลขในหัวข้อ (1,200) ไม่ตรงสูตร (850) เกณฑ์ไม่ตรงกันแต่ละส่วน</td></tr>
+      <tr><td>2</td><td>v2 ใส่เลขกฎและ SELF-CHECK</td><td>ตัวเลขและเกณฑ์ตรงกันแล้ว</td><td>ลิงก์ TikTok สิงคโปร์ใช้กับแผน YouTube วันที่ผิด ใช้คำเด็ดขาด</td></tr>
+      <tr><td>3</td><td>เพิ่มกฎลิงก์และเกณฑ์</td><td>ลิงก์ถูกครบ 4 หน้า เงื่อนไขหยุดแผนใช้ "หรือ"</td><td>ใช้บล็อกเก่าปี 2024 แทนหน้า help และไม่ประมาณรายได้</td></tr>
+      <tr><td>4</td><td>เพิ่มกฎรายได้และแหล่งปัจจุบัน</td><td>โครงสร้างดีที่สุด</td><td>บอกว่าหน้าเว็บ "ไม่ระบุวันที่" ทั้งที่มี และเอายอดวิวสะสมไปเทียบกับต้นทุนรายเดือน</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>ข้อสังเกตหลัก:</b> ข้อผิดเรื่องวันที่และลิงก์ผิดหน้ากลับมาซ้ำ เพราะโมเดลน่าจะไม่ได้เปิดหน้าเว็บจริง แต่จำ URL มาจากความรู้เดิม prompt อย่างเดียวแก้ได้ไม่หมด ทางที่ได้ผลคือบังคับให้เขียน "(ยังไม่ได้เปิดยืนยัน)" แล้วให้คนตรวจลิงก์ซ้ำ</p>
+</section>
+
+<section id="optimize">
+  <span class="pill p-opt">Optimize</span>
+  <h2>ทำให้ prompt แม่นขึ้น</h2>
+  <ol class="steps">
+    <li><div><b>ทำรายการความสามารถ</b><span>ไล่ว่า prompt สั่งอะไรบ้าง เช่น บทบาท รูปแบบผลลัพธ์ กฎ โหมด และตัวอย่าง รายการนี้ห้ามหาย</span></div></li>
+    <li><div><b>เก็บข้อผิดจากผลจริง</b><span>เปิดลิงก์ที่ AI อ้างทุกลิงก์ ตรวจสูตรตัวเลข และดูว่าเกณฑ์ตรงกันทุกส่วนไหม</span></div></li>
+    <li><div><b>แปลงข้อผิดเป็นกฎ 1 บรรทัด</b><span>หนึ่งข้อผิดได้หนึ่งกฎ ใส่เลขกำกับ และอย่าเพิ่มกฎให้ปัญหาที่ยังไม่เคยเจอ</span></div></li>
+    <li><div><b>เพิ่มคำถามใน SELF-CHECK</b><span>ให้ AI ตรวจกฎที่มักผิดก่อนส่งคำตอบ โดยไม่ต้องพิมพ์ส่วนตรวจนี้ออกมา</span></div></li>
+    <li><div><b>ทดสอบซ้ำ แล้วจดผลคู่กับเวอร์ชัน</b><span>รอบหน้าจะได้รู้ว่ากฎแต่ละข้อเพิ่มเข้ามาเพราะอะไร</span></div></li>
+  </ol>
+  <h3>กฎพื้นฐานที่ได้จากการทดสอบ</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ปัญหาที่เจอ</th><th>กฎที่ใช้แก้</th></tr></thead>
+    <tbody>
+      <tr><td>ลิงก์มีอยู่จริง แต่หน้านั้นไม่ได้พูดเรื่องที่อ้าง</td><td>อ้าง URL ได้เมื่อหน้านั้นมีข้อความนั้นจริง ตรงแพลตฟอร์มและประเทศ</td></tr>
+      <tr><td>อ้างวันที่ทั้งที่ไม่ได้เปิดหน้า</td><td>หน้าที่ไม่ได้เปิดต้องเขียน "(ยังไม่ได้เปิดยืนยัน)" และห้ามพูดถึงวันที่</td></tr>
+      <tr><td>ใช้บล็อกประกาศเก่าแทนหน้าคู่มือปัจจุบัน</td><td>ใช้หน้า help ฉบับปัจจุบันก่อนบล็อกประกาศ</td></tr>
+      <tr><td>ตัวเลขในหัวข้อไม่ตรงกับสูตร</td><td>ติดป้าย "(ประมาณการ)" แสดงสูตร และตัวเลขต้องเท่ากับผลของสูตร</td></tr>
+      <tr><td>ยอดสะสมปนกับยอดรายเดือน</td><td>หนึ่งเกณฑ์ใช้หน่วยและช่วงเวลาเดียว ต้นทุนรายเดือนก็ต้องคิดจุดคุ้มทุนเป็นรายเดือน</td></tr>
+      <tr><td>เรียกเกณฑ์ที่ตั้งเองว่า "มาตรฐาน"</td><td>เรียกว่า "เกณฑ์ที่บอร์ดตั้ง" พร้อมเหตุผล 1 บรรทัด</td></tr>
+      <tr><td>ใช้คำเด็ดขาดเกินหลักฐาน</td><td>คำว่า "ถาวร" "ทันที" หรือ "ที่สุด" ต้องมีแหล่งรองรับ ถ้าไม่มีให้เปลี่ยนเป็นคำที่ไม่เด็ดขาด</td></tr>
+    </tbody>
+  </table></div>
+  <p>ตัวอย่างจุดคุ้มทุนที่ถูก: ต้นทุนต่อเดือน ÷ RPM × 1,000 = วิวต่อเดือนที่ต้องได้ เช่น ที่ RPM $0.05 ได้ 571,429 วิวต่อเดือน ไม่ใช่ 500,000 วิวสะสม</p>
+</section>
+
+<section id="compress">
+  <span class="pill p-cmp">Compress</span>
+  <h2>ย่อ prompt โดยความสามารถไม่หาย</h2>
+  <p>ย่อ prompt คือการย้ายความหมายไปไว้ในรูปที่สั้นกว่า ไม่ใช่การตัดคำทิ้ง ในการทดสอบ ฉบับที่ย่อหนักสุดแบบรหัสย่อทำให้ข้อความเทมเพลตหลุดออกมาในคำตอบ และอ้างลิงก์ผิด 2 จาก 5</p>
+  <ol class="steps c">
+    <li><div><b>ตัดข้อความที่ซ้ำกันตรงตัว</b></div></li>
+    <li><div><b>รวมกฎที่พูดเรื่องเดียวกัน</b></div></li>
+    <li><div><b>ใส่เลขกฎ แล้วอ้างเลขแทนการเขียนซ้ำ</b></div></li>
+    <li><div><b>ย่อคำอธิบายยาวเป็นกฎ 1 บรรทัด</b></div></li>
+    <li><div><b>เขียนคำสั่งเป็นภาษาอังกฤษ แต่หัวข้อผลลัพธ์เป็นไทยเต็ม</b></div></li>
+  </ol>
+  <div class="tbl"><table>
+    <thead><tr><th>เทคนิค</th><th>ผล</th><th>เหตุผล</th></tr></thead>
+    <tbody>
+      <tr><td>ใส่เลขกฎและอ้างเลข</td><td><span class="pill p-opt">ใช้ได้</span></td><td>ตัดข้อความซ้ำได้มาก และโมเดลอ้างกฎได้ตรงตัว</td></tr>
+      <tr><td>บอกว่าข้อความใน [ ] เป็นคำสั่ง ห้ามคัดลอกลงคำตอบ</td><td><span class="pill p-opt">ใช้ได้</span></td><td>กันข้อความเทมเพลตหลุดออกมาในคำตอบ</td></tr>
+      <tr><td>ย่อหัวข้อเป็นคำย่อหรือสัญลักษณ์</td><td><span class="pill p-cmp">ระวัง</span></td><td>ผู้ใช้อ่านยาก ผู้ใช้ชอบหัวข้อไทยเต็มมากกว่า</td></tr>
+      <tr><td>เขียนกฎกว้างเกินขอบเขตเดิม</td><td><span class="pill p-cmp">ระวัง</span></td><td>เช่น "ทุกตัวเลขต้องมีแหล่ง" ทำให้ป้าย "ไม่พบแหล่ง" ขึ้นเต็มคำตอบ</td></tr>
+      <tr><td>แปลงทั้ง prompt เป็นรหัสย่อหรือ DSL</td><td><span class="pill p-bad">ห้าม</span></td><td>ข้อความเทมเพลตหลุดออกมา และอ้างลิงก์ผิด</td></tr>
+      <tr><td>ตัดตัวอย่างและเงื่อนไขขอบเขต</td><td><span class="pill p-bad">ห้าม</span></td><td>โมเดลใช้คำเด็ดขาดเกินกว่าที่แหล่งพูดไว้</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="prompts">
+  <h2>Prompt สำเร็จรูป</h2>
+  <p>คัดลอกไปวางใน Claude, ChatGPT หรือ Gemini แล้ววาง prompt ที่ต้องการปรับต่อท้าย ถ้าใช้ทั้งสองตัว ให้รัน Optimize ก่อนแล้วค่อย Compress ทั้งสองตัวยังไม่ได้ทดสอบกับ AI ตัวอื่น</p>
+  <div class="prompt" data-src="prompt-optimizer.md">
+    <div class="bar"><span>prompt-optimizer.md</span><div><button class="toggle" type="button">แสดง</button><button class="primary copy" type="button">คัดลอก</button></div></div>
+    <pre hidden>กำลังโหลด…</pre>
+  </div>
+  <div class="prompt" data-src="prompt-compressor.md">
+    <div class="bar"><span>prompt-compressor.md</span><div><button class="toggle" type="button">แสดง</button><button class="primary copy" type="button">คัดลอก</button></div></div>
+    <pre hidden>กำลังโหลด…</pre>
+  </div>
+  <p>ดู prompt ตัวอย่างที่ผ่านการปรับแล้วได้ที่ <a href="strategic-board-prompt-v2.md">strategic-board-prompt-v2.md</a> และผลตรวจละเอียดทุกลิงก์ที่ <a href="gemini-test-review-2026-10-28.md">gemini-test-review-2026-10-28.md</a></p>
+</section>
+
+<section id="checklist">
+  <h2>เช็กลิสต์ก่อนใช้ prompt ฉบับใหม่</h2>
+  <ul class="check">
+    <li>ทุกข้อในรายการความสามารถยังอยู่ครบ</li>
+    <li>หัวข้อผลลัพธ์เหมือนเดิมทุกตัวอักษร</li>
+    <li>รันชุดทดสอบทั้งฉบับเดิมและฉบับใหม่ แล้วเทียบผลแล้ว</li>
+    <li>เปิดลิงก์ที่โมเดลอ้างทุกลิงก์ และหน้านั้นพูดเรื่องที่อ้างจริง</li>
+    <li>ตัวเลขทุกตัวตรงกับสูตร และเกณฑ์ตรงกันทุกส่วน</li>
+    <li>จดชื่อเวอร์ชันและผลทดสอบไว้คู่กัน</li>
+  </ul>
+</section>
+
+<footer>ทดสอบกับ Gemini 3.8 Flash เมื่อเดือนตุลาคม 2026 · ผลลัพธ์ขึ้นกับโมเดลและเวอร์ชันที่ใช้</footer>
+</div>
+
+<script>
+document.querySelectorAll('.prompt').forEach(function(box){
+  var pre=box.querySelector('pre'),loaded=false;
+  function load(){
+    if(loaded)return Promise.resolve();
+    return fetch(box.dataset.src).then(function(r){if(!r.ok)throw 0;return r.text()})
+      .then(function(t){pre.textContent=t;loaded=true})
+      .catch(function(){pre.textContent='โหลดไม่สำเร็จ เปิดไฟล์ '+box.dataset.src+' โดยตรงแทน'});
+  }
+  box.querySelector('.toggle').addEventListener('click',function(){
+    var b=this;load().then(function(){pre.hidden=!pre.hidden;b.textContent=pre.hidden?'แสดง':'ซ่อน'});
+  });
+  box.querySelector('.copy').addEventListener('click',function(){
+    var b=this;load().then(function(){
+      function done(m){b.textContent=m;setTimeout(function(){b.textContent='คัดลอก'},1800)}
+      try{navigator.clipboard.writeText(pre.textContent).then(function(){done('คัดลอกแล้ว')},function(){done('คัดลอกไม่ได้')})}
+      catch(e){done('คัดลอกไม่ได้')}
+    });
+  });
+});
+</script>
+</body>
+</html>
