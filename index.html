@@ -1,240 +1,2298 @@
 <!doctype html>
 <html lang="th">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111513" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Optimize กับ Compress Prompt">
-<meta property="og:description" content="บทเรียนจากการทดสอบ prompt กับ Gemini จริง 4 รอบ">
-<title>Optimize กับ Compress Prompt</title>
-<meta name="description" content="บทเรียนจากการทดสอบ prompt กับ Gemini จริง 4 รอบ: ทำให้ prompt แม่นขึ้น และย่อให้สั้นลงโดยความสามารถไม่หาย">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Bai+Jamjuree:wght@600;700&display=swap">
-<style>
-:root{
-  --bg:#f6f5f1;--surface:#fff;--fg:#1b1f1d;--muted:#5b625e;--line:#dedbd2;
-  --opt:#0f7a63;--opt-soft:#e2f2ec;--cmp:#7a4b0f;--cmp-soft:#f7ecdc;
-  --bad:#b3261e;--bad-soft:#fbe4e2;--code-bg:#16201c;--code-fg:#dbe9e4;
-  --f-d:"Bai Jamjuree","IBM Plex Sans Thai",system-ui,sans-serif;
-  --f-b:"IBM Plex Sans Thai",system-ui,"Segoe UI",sans-serif;
-  --f-m:"IBM Plex Mono",ui-monospace,Consolas,monospace;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#111513;--surface:#181e1b;--fg:#e4ebe7;--muted:#9fada6;--line:#2b3631;
-  --opt:#4cc9a6;--opt-soft:#15332a;--cmp:#f0b35c;--cmp-soft:#33260f;
-  --bad:#ff8a80;--bad-soft:#3a1c1a;--code-bg:#0b100e;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#111513;--surface:#181e1b;--fg:#e4ebe7;--muted:#9fada6;--line:#2b3631;
-  --opt:#4cc9a6;--opt-soft:#15332a;--cmp:#f0b35c;--cmp-soft:#33260f;
-  --bad:#ff8a80;--bad-soft:#3a1c1a;--code-bg:#0b100e;color-scheme:dark}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-section,header{scroll-margin-top:64px}
-.skip{position:absolute;left:16px;top:-48px;background:var(--opt);color:#04140f;padding:8px 14px;border-radius:8px;z-index:10;font-weight:600}
-.skip:focus{top:8px}
-a:focus-visible{outline:3px solid var(--cmp);outline-offset:2px;border-radius:4px}
-td:first-child{font-variant-numeric:tabular-nums}
-button:hover,.btn:hover{filter:brightness(1.15)}
-section a:hover,footer a:hover{text-decoration-thickness:2px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.8 var(--f-b);padding:0 16px}
-.wrap{max-width:860px;margin:0 auto}
-nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
-nav .wrap{display:flex;gap:18px;overflow-x:auto;padding:12px 0;font-size:15px;white-space:nowrap}
-nav a{color:var(--muted);text-decoration:none}
-nav a:hover,nav a:focus-visible{color:var(--fg)}
-h1,h2,h3{font-family:var(--f-d);line-height:1.3;text-wrap:balance;margin:0}
-h1{font-size:clamp(32px,6vw,52px)}
-h2{font-size:clamp(24px,4vw,30px)}
-h3{font-size:19px}
-p{margin:0;max-width:66ch}
-header{padding:72px 0 40px;display:grid;gap:18px}
-.eyebrow{font:500 13px/1 var(--f-m);letter-spacing:.08em;text-transform:uppercase;color:var(--opt)}
-.lede{font-size:19px;color:var(--muted)}
-section{padding:44px 0;border-top:1px solid var(--line);display:grid;gap:20px}
-.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:10px;align-content:start}
-.card.opt{border-top:4px solid var(--opt)}
-.card.cmp{border-top:4px solid var(--cmp)}
-.card ul{margin:0;padding-left:20px}
-.pill{display:inline-block;font:500 12px/1 var(--f-m);padding:6px 10px;border-radius:999px;width:max-content}
-.p-opt{background:var(--opt-soft);color:var(--opt)}
-.p-cmp{background:var(--cmp-soft);color:var(--cmp)}
-.p-bad{background:var(--bad-soft);color:var(--bad)}
-.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
-.flow span{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
-.flow i{font-style:normal;color:var(--muted)}
-.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;min-width:600px;font-size:15.5px}
-th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
-th{font-size:13px;font-weight:600;color:var(--muted);background:var(--bg)}
-tr:last-child td{border-bottom:0}
-ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:14px}
-ol.steps li{counter-increment:s;display:grid;grid-template-columns:38px 1fr;gap:14px}
-ol.steps li::before{content:counter(s);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font:600 15px var(--f-m);background:var(--opt-soft);color:var(--opt)}
-ol.steps.c li::before{background:var(--cmp-soft);color:var(--cmp)}
-ol.steps b{display:block}
-ol.steps span{color:var(--muted)}
-.note{border-left:4px solid var(--cmp);background:var(--surface);padding:14px 18px;border-radius:0 10px 10px 0;color:var(--muted)}
-.prompt{background:var(--code-bg);color:var(--code-fg);border-radius:14px;overflow:hidden}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #ffffff1a;flex-wrap:wrap}
-.bar span{font:500 13px var(--f-m);color:#9fbfb4}
-.bar div{display:flex;gap:8px}
-button,.btn{font:600 14px var(--f-b);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;text-decoration:none;background:#2c3a35;color:#dbe9e4}
-button.primary{background:#4cc9a6;color:#04140f}
-button:focus-visible,.btn:focus-visible{outline:3px solid var(--cmp);outline-offset:2px}
-pre{margin:0;padding:18px 16px;font:13.5px/1.7 var(--f-m);white-space:pre-wrap;word-break:break-word;max-height:520px;overflow:auto}
-pre[hidden]{display:none}
-.check{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.check li{padding-left:30px;position:relative}
-.check li::before{content:"✓";position:absolute;left:0;top:0;color:var(--opt);font-weight:700}
-footer{border-top:1px solid var(--line);padding:32px 0 56px;color:var(--muted);font-size:14px}
-footer a,section a{color:var(--opt)}
-code{font:14.5px var(--f-m);background:var(--opt-soft);padding:1px 6px;border-radius:4px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f8fafc" id="theme-meta">
+  <title>คู่มือปรับแต่งและย่อ Prompt (Prompt Optimize & Compress)</title>
+  <meta name="description" content="บทเรียนจริงจากการทดสอบ prompt กับ Gemini 4 รอบ: เทคนิคทำให้ prompt ตอบแม่นยำ ไม่หลอน ไม่คิดเลขผิด และย่อให้สั้นลงโดยไม่สูญเสียความสามารถ พร้อม Prompt สำเร็จรูป">
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="คู่มือปรับแต่งและย่อ Prompt (Prompt Optimize & Compress)">
+  <meta property="og:description" content="บทเรียนจากการทดสอบจริง 4 รอบกับ Gemini 3.8 Flash: ทำให้ prompt แม่นขึ้น และย่อให้สั้นลงโดยฟังก์ชันไม่หาย">
+  <meta property="og:url" content="https://okayokay101.github.io/prompt-optimize-compress/">
+
+  <!-- Google Fonts: Thai & Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
+
+  <style>
+    /* CSS Reset & Variables */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Light Palette */
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-hover: #e2e8f0;
+      --border: #e2e8f0;
+      --border-subtle: #cbd5e1;
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-soft: #64748b;
+      
+      /* Brand Accents */
+      --opt: #059669;
+      --opt-light: #ecfdf5;
+      --opt-border: #a7f3d0;
+      --opt-text: #065f46;
+      
+      --cmp: #d97706;
+      --cmp-light: #fffbeb;
+      --cmp-border: #fde68a;
+      --cmp-text: #92400e;
+
+      --indigo: #4f46e5;
+      --indigo-light: #eef2ff;
+      --indigo-border: #c7d2fe;
+      --indigo-text: #3730a3;
+      
+      --bad: #e11d48;
+      --bad-light: #fff1f2;
+      --bad-border: #fecdd3;
+      --bad-text: #9f1239;
+
+      --code-bg: #0f172a;
+      --code-fg: #f1f5f9;
+      --code-border: #1e293b;
+      
+      --font-heading: "Bai Jamjuree", "IBM Plex Sans Thai", system-ui, sans-serif;
+      --font-body: "IBM Plex Sans Thai", system-ui, -apple-system, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+      --radius: 12px;
+      --radius-lg: 16px;
+      --container: 920px;
+    }
+
+    [data-theme="dark"] {
+      --bg-base: #0b0f17;
+      --bg-surface: #131b26;
+      --bg-subtle: #192332;
+      --bg-hover: #222f42;
+      --border: #222f42;
+      --border-subtle: #2d3e56;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-soft: #64748b;
+      
+      --opt: #10b981;
+      --opt-light: #062b21;
+      --opt-border: #0b4f3b;
+      --opt-text: #6ee7b7;
+      
+      --cmp: #f59e0b;
+      --cmp-light: #301f04;
+      --cmp-border: #5a3a08;
+      --cmp-text: #fcd34d;
+
+      --indigo: #6366f1;
+      --indigo-light: #161833;
+      --indigo-border: #282c5e;
+      --indigo-text: #a5b4fc;
+      
+      --bad: #f43f5e;
+      --bad-light: #2c0911;
+      --bad-border: #521522;
+      --bad-text: #fda4af;
+
+      --code-bg: #070a0f;
+      --code-fg: #e2e8f0;
+      --code-border: #1a2332;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+      --shadow-lg: 0 10px 20px -3px rgb(0 0 0 / 0.5);
+    }
+
+    /* Core Styles */
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 1.0625rem; /* 17px */
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: 80px;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: var(--font-heading);
+      color: var(--text-main);
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 2.75rem);
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.5rem, 3.2vw, 1.875rem);
+      letter-spacing: -0.015em;
+      margin-bottom: 0.75rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: var(--opt);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 3px solid var(--cmp);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.15em 0.4em;
+      border-radius: 6px;
+    }
+
+    /* Accessibility Skip Link */
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 16px;
+      background: var(--opt);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 1000;
+      transition: top 0.2s ease;
+      box-shadow: var(--shadow-md);
+    }
+
+    .skip-link:focus {
+      top: 16px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Layout Container */
+    .container {
+      width: 100%;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Top Sticky Navigation */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: color-mix(in srgb, var(--bg-base) 85%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-brand .icon-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--opt), #047857);
+      color: #ffffff;
+      font-size: 1.1rem;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+      overflow-x: auto;
+      padding: 6px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-menu a {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 6px 4px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .nav-menu a:hover {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .nav-menu a.active {
+      color: var(--opt);
+      border-color: var(--opt);
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Badges & Pills */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.775rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1;
+      width: max-content;
+    }
+
+    .badge-opt {
+      background: var(--opt-light);
+      color: var(--opt-text);
+      border: 1px solid var(--opt-border);
+    }
+
+    .badge-cmp {
+      background: var(--cmp-light);
+      color: var(--cmp-text);
+      border: 1px solid var(--cmp-border);
+    }
+
+    .badge-bad {
+      background: var(--bad-light);
+      color: var(--bad-text);
+      border: 1px solid var(--bad-border);
+    }
+
+    .badge-indigo {
+      background: var(--indigo-light);
+      color: var(--indigo-text);
+      border: 1px solid var(--indigo-border);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: var(--opt);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #047857;
+      color: #ffffff;
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--opt) 35%, transparent);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 7px;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 64px 0 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-title {
+      margin-bottom: 16px;
+      line-height: 1.25;
+    }
+
+    .hero-title span.highlight-opt {
+      color: var(--opt);
+    }
+
+    .hero-title span.highlight-cmp {
+      color: var(--cmp);
+    }
+
+    .hero-lede {
+      font-size: 1.1875rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 68ch;
+      margin-bottom: 32px;
+    }
+
+    /* Diagnostic Selector Cards */
+    .diagnostic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .diag-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .diag-card:hover {
+      border-color: var(--border-subtle);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+    }
+
+    .diag-card.diag-opt:hover {
+      border-color: var(--opt);
+    }
+
+    .diag-card.diag-cmp:hover {
+      border-color: var(--cmp);
+    }
+
+    .diag-card.diag-all:hover {
+      border-color: var(--indigo);
+    }
+
+    .diag-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .diag-icon {
+      font-size: 1.5rem;
+    }
+
+    .diag-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .diag-desc {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .diag-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .diag-opt .diag-action { color: var(--opt); }
+    .diag-cmp .diag-action { color: var(--cmp); }
+    .diag-all .diag-action { color: var(--indigo); }
+
+    /* Sections Common */
+    section {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 64px;
+    }
+
+    .section-header {
+      margin-bottom: 28px;
+    }
+
+    .section-header .badge {
+      margin-bottom: 12px;
+    }
+
+    /* Comparison Side-by-Side */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .compare-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .compare-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+
+    .compare-card.opt-theme::before {
+      background: var(--opt);
+    }
+
+    .compare-card.cmp-theme::before {
+      background: var(--cmp);
+    }
+
+    .compare-head {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .compare-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .compare-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9688rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .compare-list li strong {
+      color: var(--text-main);
+    }
+
+    .icon-bullet {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .opt-theme .icon-bullet {
+      background: var(--opt-light);
+      color: var(--opt);
+    }
+
+    .cmp-theme .icon-bullet {
+      background: var(--cmp-light);
+      color: var(--cmp);
+    }
+
+    /* Flow Stepper Bar */
+    .flow-stepper {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 28px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      overflow-x: auto;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .flow-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .flow-step.active-opt .flow-num {
+      background: var(--opt-light);
+      border-color: var(--opt-border);
+      color: var(--opt);
+    }
+
+    .flow-step.active-cmp .flow-num {
+      background: var(--cmp-light);
+      border-color: var(--cmp-border);
+      color: var(--cmp);
+    }
+
+    .flow-label {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--text-main);
+    }
+
+    .flow-arrow {
+      color: var(--text-soft);
+      font-size: 1.2rem;
+      user-select: none;
+    }
+
+    /* Callout & Alert Box */
+    .callout {
+      background: var(--bg-surface);
+      border-left: 4px solid var(--cmp);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 18px 22px;
+      margin: 20px 0;
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .callout-info {
+      border-left-color: var(--opt);
+    }
+
+    .callout-danger {
+      border-left-color: var(--bad);
+      background: color-mix(in srgb, var(--bad-light) 40%, var(--bg-surface));
+    }
+
+    /* Test Timeline / Table */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .timeline-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+      transition: border-color 0.15s ease;
+    }
+
+    .timeline-card:hover {
+      border-color: var(--border-subtle);
+    }
+
+    .timeline-round {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timeline-round-num {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .timeline-round-desc {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+    }
+
+    .timeline-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9375rem;
+    }
+
+    .timeline-block-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    .timeline-good .timeline-block-title { color: var(--opt); }
+    .timeline-flaw .timeline-block-title { color: var(--bad); }
+
+    @media (max-width: 768px) {
+      .timeline-card {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+    }
+
+    /* Step-by-Step Cards */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 24px 0;
+    }
+
+    .step-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .step-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .step-opt .step-badge {
+      background: var(--opt-light);
+      color: var(--opt);
+      border: 1px solid var(--opt-border);
+    }
+
+    .step-cmp .step-badge {
+      background: var(--cmp-light);
+      color: var(--cmp);
+      border: 1px solid var(--cmp-border);
+    }
+
+    .step-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .step-title {
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 1.05rem;
+    }
+
+    .step-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    /* Honesty Rules Grid (Before vs After) */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .rule-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .rule-problem {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+    }
+
+    .rule-problem .icon {
+      color: var(--bad);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .rule-solution {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9375rem;
+      color: var(--text-main);
+      background: var(--opt-light);
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--opt-border);
+    }
+
+    .rule-solution .icon {
+      color: var(--opt);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 680px) {
+      .rule-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+
+    /* Traffic Light Cards (Compress rules) */
+    .traffic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .traffic-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .traffic-card.t-green {
+      border-top: 4px solid var(--opt);
+    }
+
+    .traffic-card.t-yellow {
+      border-top: 4px solid var(--cmp);
+    }
+
+    .traffic-card.t-red {
+      border-top: 4px solid var(--bad);
+    }
+
+    .traffic-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .traffic-card li {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic-card li strong {
+      color: var(--text-main);
+    }
+
+    /* Interactive Calculator Box */
+    .calc-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 28px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .calc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .calc-inputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .calc-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calc-field label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .calc-field input {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--text-main);
+      width: 100%;
+    }
+
+    .calc-result {
+      background: var(--opt-light);
+      border: 1px solid var(--opt-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .calc-result-text {
+      font-size: 0.95rem;
+      color: var(--opt-text);
+      font-weight: 500;
+    }
+
+    .calc-result-number {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--opt);
+    }
+
+    /* Prompt Studio (Tabs & Code Viewer) */
+    .prompt-studio {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      margin-top: 24px;
+    }
+
+    .studio-tabs {
+      display: flex;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 6px 0;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .studio-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .studio-tab-btn:hover {
+      color: var(--text-main);
+      background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
+    }
+
+    .studio-tab-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--border);
+      position: relative;
+    }
+
+    .studio-tab-btn.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--bg-surface);
+    }
+
+    .studio-tab-btn.active.tab-opt { border-top: 3px solid var(--opt); }
+    .studio-tab-btn.active.tab-cmp { border-top: 3px solid var(--cmp); }
+
+    .studio-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .studio-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .studio-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .code-container {
+      position: relative;
+      background: var(--code-bg);
+    }
+
+    .code-pre {
+      margin: 0;
+      padding: 22px;
+      font-family: var(--font-mono);
+      font-size: 0.8875rem;
+      line-height: 1.7;
+      color: var(--code-fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 540px;
+      overflow-y: auto;
+    }
+
+    /* Pre-Flight Checklist Interactive */
+    .checklist-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-top: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .checklist-progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-subtle);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 16px 0 24px;
+    }
+
+    .checklist-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cmp), var(--opt));
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .check-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .check-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-base);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 0.98rem;
+    }
+
+    .check-label:hover {
+      background: var(--bg-hover);
+    }
+
+    .check-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--opt);
+      cursor: pointer;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .check-label.checked {
+      background: var(--opt-light);
+      border-color: var(--opt-border);
+      color: var(--opt-text);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text-main);
+      color: var(--bg-surface);
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: var(--shadow-lg);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 0 24px;
+      margin-top: 56px;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
-<a class="skip" href="#main">ข้ามไปเนื้อหา</a>
-<nav aria-label="สารบัญ"><div class="wrap">
-  <a href="#diff">ต่างกันอย่างไร</a><a href="#tests">ผลทดสอบ</a><a href="#optimize">Optimize</a><a href="#compress">Compress</a><a href="#prompts">Prompt สำเร็จรูป</a><a href="#checklist">เช็กลิสต์</a>
-</div></nav>
 
-<main id="main" class="wrap">
-<header>
-  <div class="eyebrow">บทเรียนจากการทดสอบจริง</div>
-  <h1>ทำ prompt ให้แม่นขึ้น แล้วค่อยทำให้สั้นลง</h1>
-  <p class="lede">สรุปจากการทดสอบ prompt "คณะที่ปรึกษาเชิงกลยุทธ์" กับ Gemini 4 รอบ ว่าอะไรทำให้คำตอบผิด กฎแบบไหนแก้ได้ และย่อ prompt อย่างไรให้ความสามารถไม่หาย</p>
-  <div class="flow" aria-label="ลำดับขั้นตอน"><span>Prompt เดิม</span><i>→</i><span style="border-color:var(--opt)">Optimize ให้แม่น</span><i>→</i><span style="border-color:var(--cmp)">Compress ให้สั้น</span><i>→</i><span>ทดสอบเทียบ</span></div>
-</header>
+  <!-- Accessible Skip Link -->
+  <a class="skip-link" href="#main-content">ข้ามไปเนื้อหาหลัก (Skip to Content)</a>
 
-<section id="diff">
-  <h2>Optimize กับ Compress ต่างกันอย่างไร</h2>
-  <p>สองงานนี้มีเป้าหมายต่างกัน ถ้าทำพร้อมกันมักได้ prompt ที่สั้นลงแต่ผิดมากขึ้น จึงควรแยกทำทีละขั้น</p>
-  <div class="duo">
-    <div class="card opt"><span class="pill p-opt">Optimize</span><h3>ทำให้ตอบถูกและซื่อตรงขึ้น</h3>
-      <ul><li>ความถูกต้องมาก่อน ยาวขึ้นได้ถ้าจำเป็น</li><li>เริ่มจากข้อผิดที่เจอในผลจริง</li><li>แปลงข้อผิดแต่ละจุดเป็นกฎ 1 บรรทัด</li></ul></div>
-    <div class="card cmp"><span class="pill p-cmp">Compress</span><h3>ทำให้สั้นลงโดยไม่เสียความสามารถ</h3>
-      <ul><li>ไม่เพิ่มกฎใหม่</li><li>ต้องทำรายการความสามารถก่อนตัด</li><li>ทุกความสามารถต้องชี้ได้ว่าอยู่ตรงไหนในฉบับย่อ</li></ul></div>
+  <!-- Navigation Bar -->
+  <header class="nav-bar">
+    <div class="container nav-inner">
+      <a href="#hero" class="nav-brand" aria-label="กลับสู่หน้าแรก">
+        <span class="icon-logo" aria-hidden="true">🎯</span>
+        <span>Prompt Studio</span>
+      </a>
+
+      <nav aria-label="สารบัญเนื้อหา">
+        <ul class="nav-menu">
+          <li><a href="#concepts">แนวคิดหลัก</a></li>
+          <li><a href="#case-studies">ผลทดลอง 4 รอบ</a></li>
+          <li><a href="#optimize-guide">Optimize</a></li>
+          <li><a href="#compress-guide">Compress</a></li>
+          <li><a href="#prompts-studio">Prompt พร้อมใช้</a></li>
+          <li><a href="#checklist">เช็กลิสต์</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="theme-btn" class="theme-toggle-btn" type="button" aria-label="สลับธีม สว่าง/มืด" title="สลับธีม">
+          <span id="theme-icon" aria-hidden="true">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="container">
+    
+    <!-- Hero Section -->
+    <header id="hero" class="hero">
+      <div class="hero-eyebrow">
+        <span class="badge badge-opt">บทเรียนจากการทดสอบจริง</span>
+        <span class="badge badge-indigo">Gemini 3.8 Flash Tested</span>
+      </div>
+
+      <h1 class="hero-title">
+        ทำ Prompt ให้<span class="highlight-opt">แม่นยำขึ้น</span> แล้วค่อยย่อให้<span class="highlight-cmp">สั้นลง</span>
+      </h1>
+
+      <p class="hero-lede">
+        สรุปข้อค้นพบจากการทดสอบ Prompt "คณะที่ปรึกษาเชิงกลยุทธ์" กับ Gemini 4 รอบอย่างเข้มข้น 
+        แก้ปัญหาข้อเท็จจริงผิดเพี้ยน ลิงก์ไม่ตรงหน้า คิดเลขขัดแย้ง 
+        และเผยเทคนิคย่อ Prompt ประหยัดโทเคนโดยที่ฟังก์ชันและความฉลาดไม่ตกหล่นแม้แต่ข้อเดียว
+      </p>
+
+      <!-- Quick Action Diagnostic Cards -->
+      <div class="diagnostic-grid" aria-label="เลือกแนวทางตามปัญหาที่คุณพบ">
+        <a href="#optimize-guide" class="diag-card diag-opt">
+          <div class="diag-header">
+            <span class="diag-icon" aria-hidden="true">🎯</span>
+            <div class="diag-title">AI ตอบเพี้ยน / หลอน / ลิงก์มั่ว</div>
+          </div>
+          <div class="diag-desc">
+            คำตอบไม่ตรงหลักฐาน สูตรตัวเลขไม่สัมพันธ์กัน หรืออ้างข้อมูลเกินจริง
+          </div>
+          <div class="diag-action">
+            <span>ไปที่คู่มือ Optimize</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+
+        <a href="#compress-guide" class="diag-card diag-cmp">
+          <div class="diag-header">
+            <span class="diag-icon" aria-hidden="true">⚡</span>
+            <div class="diag-title">Prompt ยาวเกิน / เปลืองโทเคน</div>
+          </div>
+          <div class="diag-desc">
+            อยากตัดทอนคำให้สั้นกระชับ ประหยัดต้นทุน แต่กลัว AI ลืมคำสั่งเดิม
+          </div>
+          <div class="diag-action">
+            <span>ไปที่คู่มือ Compress</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+
+        <a href="#prompts-studio" class="diag-card diag-all">
+          <div class="diag-header">
+            <span class="diag-icon" aria-hidden="true">📋</span>
+            <div class="diag-title">ต้องการคัดลอก Prompt ทันที</div>
+          </div>
+          <div class="diag-desc">
+            รับแม่แบบ Prompt Optimizer และ Compressor สำเร็จรูปนำไปใช้งานได้เลย
+          </div>
+          <div class="diag-action">
+            <span>ดู Prompt พร้อมใช้</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- Section 1: Concepts -->
+    <section id="concepts">
+      <div class="section-header">
+        <span class="badge badge-indigo">แก่นความคิดสำคัญ</span>
+        <h2>Optimize กับ Compress ต่างกันอย่างไร?</h2>
+        <p>สองงานนี้มีเป้าหมายและจิตวิทยาคนละขั้ว <strong>ห้ามทำพร้อมกันเด็ดขาด</strong> เพราะการพยายามย่อคำพร้อมกับแก้บั๊กจะทำให้ได้ Prompt ที่สั้นลงแต่เพี้ยนหนักกว่าเดิม</p>
+      </div>
+
+      <div class="compare-grid">
+        <!-- Optimize Card -->
+        <article class="compare-card opt-theme">
+          <div class="compare-head">
+            <span class="badge badge-opt">เป้าหมายที่ 1</span>
+            <h3>🎯 Optimize: มุ่งเน้น "ความถูกต้องและซื่อตรง"</h3>
+            <p>ทำให้ AI ตอบตรงความจริง ไม่แต่งเติม และตรวจความผิดพลาดได้ด้วยตัวเอง</p>
+          </div>
+          <ul class="compare-list">
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ความถูกต้องมาก่อนความสั้น:</strong> Prompt ยาวขึ้นได้ถ้าจำเป็นต้องเพิ่มกติกาความปลอดภัย</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ขับเคลื่อนจากข้อผิดพลาดจริง (Failure-driven):</strong> จดทุกจุดที่ AI ตอบผิด แล้วแปลงเป็นกฎ 1 บรรทัด</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ไม่เดาปัญหาล่วงหน้า:</strong> อย่าเพิ่มกฎดักปัญหาที่โมเดลยังไม่เคยทำผิด</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>เพิ่ม SELF-CHECK:</strong> บังคับให้โมเดลทบทวนตัวเองแบบเงียบๆ ก่อนส่งคำตอบ</span>
+            </li>
+          </ul>
+        </article>
+
+        <!-- Compress Card -->
+        <article class="compare-card cmp-theme">
+          <div class="compare-head">
+            <span class="badge badge-cmp">เป้าหมายที่ 2</span>
+            <h3>⚡ Compress: มุ่งเน้น "ความกระชับโดยไม่เสียพลัง"</h3>
+            <p>ลดจำนวนคำและโทเคน แต่รักษาผลลัพธ์และพฤติกรรมเดิมไว้ครบ 100%</p>
+          </div>
+          <ul class="compare-list">
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ห้ามเพิ่มกฎใหม่:</strong> หน้าที่เพิ่มกฎเป็นของ Optimizer ส่วน Compressor มุ่งย้ายรูปแบบ</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ทำสัญญาความสามารถ (Contract):</strong> จดรายการคำสั่งเดิมทั้งหมดไว้ตรวจสอบ ห้ามหล่นหาย</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ย่นย่ออย่างเป็นระบบ:</strong> ยุบส่วนซ้ำ ซ้อนลำดับข้อความ อ้างอิงด้วยรหัสตัวเลข</span>
+            </li>
+            <li>
+              <span class="icon-bullet" aria-hidden="true">✓</span>
+              <span><strong>ห้ามใช้รหัสย่อลึกลับ (Cryptic DSL):</strong> รหัสที่แปลกเกินไปจะทำให้โมเดลตีความเพี้ยน</span>
+            </li>
+          </ul>
+        </article>
+      </div>
+
+      <!-- Flow Stepper -->
+      <div class="flow-stepper" aria-label="ลำดับขั้นตอนการทำงานที่ถูกต้อง">
+        <div class="flow-step">
+          <span class="flow-num">1</span>
+          <span class="flow-label">Prompt เดิม</span>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">➔</span>
+        <div class="flow-step active-opt">
+          <span class="flow-num">2</span>
+          <span class="flow-label">Optimize ให้แม่นยำ</span>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">➔</span>
+        <div class="flow-step active-cmp">
+          <span class="flow-num">3</span>
+          <span class="flow-label">Compress ให้กระชับ</span>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">➔</span>
+        <div class="flow-step">
+          <span class="flow-num">4</span>
+          <span class="flow-label">ทดสอบผลลัพธ์เทียบกัน</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Case Studies -->
+    <section id="case-studies">
+      <div class="section-header">
+        <span class="badge badge-indigo">บทเรียนจากประสบการณ์จริง</span>
+        <h2>วิวัฒนาการทดสอบ 4 รอบกับ Gemini 3.8 Flash</h2>
+        <p>จากการนำ Prompt "คณะที่ปรึกษาเชิงกลยุทธ์" ไปทดสอบและจับข้อผิดพลาดละเอียดทุกลิงก์และทุกตัวเลข</p>
+      </div>
+
+      <div class="timeline-container">
+        <!-- Round 1 -->
+        <div class="timeline-card">
+          <div class="timeline-round">
+            <span class="timeline-round-num">รอบที่ 1</span>
+            <span class="timeline-round-desc">ฉบับผสมแรกเริ่ม</span>
+          </div>
+          <div class="timeline-block timeline-good">
+            <span class="timeline-block-title">จุดที่ได้ผล</span>
+            <p>ได้โครงสร้างบอร์ดที่ปรึกษาเบื้องต้น</p>
+          </div>
+          <div class="timeline-block timeline-flaw">
+            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
+            <p>อ้างอิงลิงก์ผิดบริบท, ตัวเลขหัวข้อ (1,200) ไม่ตรงกับสูตรคำนวณ (850), เกณฑ์ตัวชี้วัดไม่ตรงกันในแต่ละข้อ</p>
+          </div>
+        </div>
+
+        <!-- Round 2 -->
+        <div class="timeline-card">
+          <div class="timeline-round">
+            <span class="timeline-round-num">รอบที่ 2</span>
+            <span class="timeline-round-desc">v2 ใส่เลขกำกับกฎ</span>
+          </div>
+          <div class="timeline-block timeline-good">
+            <span class="timeline-block-title">จุดที่ได้ผล</span>
+            <p>ตัวเลขหัวข้อตรงกับสูตร เกณฑ์สอดคล้องกันมากขึ้น และมีกระบวนการ SELF-CHECK</p>
+          </div>
+          <div class="timeline-block timeline-flaw">
+            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
+            <p>นำลิงก์ TikTok สิงคโปร์มาใช้อ้างอิงแผนงาน YouTube, อ้างวันที่ผิด, ใช้คำสรุปเด็ดขาดเกินจริง</p>
+          </div>
+        </div>
+
+        <!-- Round 3 -->
+        <div class="timeline-card">
+          <div class="timeline-round">
+            <span class="timeline-round-num">รอบที่ 3</span>
+            <span class="timeline-round-desc">เพิ่มกฎ URL & เงื่อนไข</span>
+          </div>
+          <div class="timeline-block timeline-good">
+            <span class="timeline-block-title">จุดที่ได้ผล</span>
+            <p>ลิงก์ถูกต้องตรงหน้าครบ 4 URL, เงื่อนไขสั่งหยุดแผนงาน (Kill-switch) ปรับมาใช้ตรรกะ "หรือ" อย่างรัดกุม</p>
+          </div>
+          <div class="timeline-block timeline-flaw">
+            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
+            <p>เลือกอ้างอิงจากบทความบล็อกเก่าปี 2024 แทนหน้า Help Center ปัจจุบัน และลืมประมาณการรายได้</p>
+          </div>
+        </div>
+
+        <!-- Round 4 -->
+        <div class="timeline-card">
+          <div class="timeline-round">
+            <span class="timeline-round-num">รอบที่ 4</span>
+            <span class="timeline-round-desc">โครงสร้างสมบูรณ์ที่สุด</span>
+          </div>
+          <div class="timeline-block timeline-good">
+            <span class="timeline-block-title">จุดที่ได้ผล</span>
+            <p>โครงสร้างมีระเบียบที่สุด การแยกแยะมุมมองกลยุทธ์ชัดเจน การให้เหตุผลมีน้ำหนักสูง</p>
+          </div>
+          <div class="timeline-block timeline-flaw">
+            <span class="timeline-block-title">ข้อผิดพลาดที่พบ</span>
+            <p>AI บอกว่าหน้าเว็บ "ไม่ระบุวันที่" ทั้งที่หน้าเว็บมีวันที่ระบุชัดเจน และนำยอดวิวสะสมไปเทียบชนกับต้นทุนรายเดือน</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Insight Box -->
+      <div class="callout callout-info">
+        <div class="callout-title">
+          <span aria-hidden="true">💡</span>
+          <span>ความจริงเกี่ยวกับ AI และการอ้างอิงลิงก์ภายนอก</span>
+        </div>
+        <p>
+          ข้อผิดพลาดเรื่อง "วันที่" และ "เนื้อหาในลิงก์" มักเกิดขึ้นซ้ำ เพราะในหลายสถานการณ์ <strong>โมเดลไม่ได้เปิดหน้าเว็บจริงขณะตอบ</strong> แต่ดึง URL มาจากความจำในพารามิเตอร์เดิม<br>
+          <strong>วิธีแก้ที่ได้ผลจริง:</strong> สั่งใน Prompt ชัดเจนว่า หากไม่ได้เปิดอ่านหน้าเว็บจริง ให้ระบุต่อท้ายว่า <code>(ยังไม่ได้เปิดยืนยัน)</code> และห้ามอ้างวันที่เด็ดขาด โดยต้องมีมนุษย์ช่วยตรวจทานลิงก์ซ้ำเสมอ
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 3: Optimize Deep Dive -->
+    <section id="optimize-guide">
+      <div class="section-header">
+        <span class="badge badge-opt">คู่มือเจาะลึก 1</span>
+        <h2>เสาหลัก Optimize: ทำให้ Prompt ตอบถูกต้องและซื่อตรง</h2>
+        <p>กระบวนการ 5 ขั้นตอนในการยกระดับคุณภาพ Prompt พร้อมกฎพื้นฐาน 7 ข้อที่สกัดจากข้อผิดพลาดจริง</p>
+      </div>
+
+      <!-- 5 Steps of Optimization -->
+      <div class="step-list">
+        <div class="step-item step-opt">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <div class="step-title">แจกแจงรายการความสามารถเดิม (Inventory)</div>
+            <div class="step-desc">ไล่เรียงคำสั่งทั้งหมด: บทบาท (Role), รูปแบบผลลัพธ์ (Format), กฎข้อบังคับ, โหมดการทำงาน และตัวอย่าง รายการนี้ถือเป็นสัญญาที่จะต้องอยู่ครบ</div>
+          </div>
+        </div>
+
+        <div class="step-item step-opt">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <div class="step-title">บันทึกข้อผิดพลาดจากผลลัพธ์จริง (Failure-driven)</div>
+            <div class="step-desc">เปิดดูผลลัพธ์ที่ AI สร้างขึ้นจริง คลิกลิงก์ทุกลิงก์ ตรวจสอบการคำนวณตัวเลข และจับตาจุดที่โมเดลตอบกำกวมหรือแต่งเรื่องขึ้นมาเอง</div>
+          </div>
+        </div>
+
+        <div class="step-item step-opt">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <div class="step-title">แปลงหนึ่งข้อผิดพลาด เป็นหนึ่งกฎสั้น 1 บรรทัด</div>
+            <div class="step-desc">อย่าเขียนกฎกว้างเกินจริง ให้เขียนกฎเฉพาะเจาะจงที่แก้ข้อผิดพลาดนั้นตรงๆ กำหนดรหัสเลข (เช่น R1, R2) เพื่อความสะดวกในการอ้างอิง</div>
+          </div>
+        </div>
+
+        <div class="step-item step-opt">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <div class="step-title">สร้างระบบ SELF-CHECK บังคับทบทวนก่อนตอบ</div>
+            <div class="step-desc">เพิ่มบล็อก SELF-CHECK เงียบๆ ท้าย Prompt เพื่อให้โมเดลตรวจสอบข้อกำหนดสำคัญ เช่น ลิงก์ตรงไหม? ตัวเลขตรงสูตรไหม? ก่อนที่จะแสดงคำตอบออกมา</div>
+          </div>
+        </div>
+
+        <div class="step-item step-opt">
+          <div class="step-badge">5</div>
+          <div class="step-content">
+            <div class="step-title">ทดสอบซ้ำและบันทึกผลคู่กับเวอร์ชัน</div>
+            <div class="step-desc">รันชุดคำสั่งทดสอบเดิม เทียบผลระหว่างเวอร์ชันเก่าและเวอร์ชันใหม่ เพื่อให้มั่นใจว่าการเพิ่มกฎไม่ส่งผลข้างเคียงให้ส่วนอื่นพัง</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 36px;">7 กฎทองความซื่อตรง (The 7 Baseline Honesty Rules)</h3>
+      <p>กฎที่พิสูจน์แล้วว่าช่วยปิดจุดอ่อนโมเดล AI ได้อย่างชะงัด:</p>
+
+      <div class="rules-grid">
+        <!-- Rule 1 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> อ้างลิงก์มีอยู่จริง แต่หน้านั้นไม่ได้พูดเรื่องที่อ้าง</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> ใส่ URL ได้เฉพาะเมื่อหน้านั้นมีข้อความนั้นอยู่จริง ตรงแพลตฟอร์มและประเทศ</div>
+          </div>
+        </div>
+
+        <!-- Rule 2 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> อ้างวันที่ของเอกสาร ทั้งๆ ที่ไม่ได้เปิดหน้าเว็บจริง</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> หน้าที่ไม่ได้เปิด ต้องวงเล็บ <code>(ยังไม่ได้เปิดยืนยัน)</code> และห้ามอ้างวันที่เด็ดขาด</div>
+          </div>
+        </div>
+
+        <!-- Rule 3 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> ดึงบล็อกประกาศเก่ามาใช้อ้างอิง นโยบายเปลี่ยนไปแล้ว</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> ให้ใช้อ้างอิงจากหน้า Help / Documentation ปัจจุบันก่อนหน้าบล็อกประกาศเสมอ</div>
+          </div>
+        </div>
+
+        <!-- Rule 4 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> ตัวเลขในสรุปไม่ตรงกับผลรวมของสูตรคำนวณ</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> ติดป้าย <code>(ประมาณการ)</code> แสดงสูตรคำนวณชัดเจน และผลลัพธ์ต้องตรงกับสูตร</div>
+          </div>
+        </div>
+
+        <!-- Rule 5 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> ปะปนตัวเลขสะสมกับตัวเลขรายงวด (เช่น รายเดือน)</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> กำหนดหน่วยและช่วงเวลาเดียว จุดคุ้มทุนต้องสอดคล้องกับคาบเวลาของต้นทุน</div>
+          </div>
+        </div>
+
+        <!-- Rule 6 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> AI อ้างว่าเกณฑ์ที่ตัวเองคิดขึ้นมาคือ "มาตรฐานอุตสาหกรรม"</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> บังคับระบุว่าเป็น <code>เกณฑ์ที่บอร์ดตั้งขึ้นเอง</code> พร้อมระบุเหตุผลสนับสนุน 1 บรรทัด</div>
+          </div>
+        </div>
+
+        <!-- Rule 7 -->
+        <div class="rule-card">
+          <div class="rule-problem">
+            <span class="icon" aria-hidden="true">✕</span>
+            <div><strong>ปัญหา:</strong> ใช้คำชี้ขาดเกินจริง เช่น "ถาวร", "ทันที", "ดีที่สุด"</div>
+          </div>
+          <div class="rule-solution">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div><strong>กฎแก้:</strong> หากไม่มีหลักฐานชัดเจน ห้ามใช้คำเด็ดขาด ให้ปรับระดับคำพูดลงเพื่อความรอบคอบ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Break-even Demo -->
+      <div class="calc-box">
+        <div class="calc-header">
+          <div>
+            <h4 style="font-size: 1.15rem; margin-bottom: 4px;">🧮 เครื่องมือจำลอง: ตรรกะจุดคุ้มทุนที่ถูกต้อง</h4>
+            <p style="font-size: 0.9rem;">ตัวอย่างการคำนวณเพื่อป้องกัน AI สับสนระหว่าง "ยอดสะสม" กับ "ยอดรายเดือน"</p>
+          </div>
+          <span class="badge badge-opt">Formula Validator</span>
+        </div>
+
+        <div class="calc-inputs">
+          <div class="calc-field">
+            <label for="cost-input">ต้นทุนคงที่ต่อเดือน ($)</label>
+            <input type="number" id="cost-input" value="30" min="1" step="1">
+          </div>
+          <div class="calc-field">
+            <label for="rpm-input">รายได้เฉลี่ยต่อพันวิว (RPM $)</label>
+            <input type="number" id="rpm-input" value="0.05" min="0.01" step="0.01">
+          </div>
+        </div>
+
+        <div class="calc-result">
+          <div class="calc-result-text">
+            <span>สูตร: <code>ต้นทุนรายเดือน ÷ RPM × 1,000</code></span><br>
+            <strong>ยอดวิวรายเดือนที่ต้องการเพื่อคุ้มทุน:</strong>
+          </div>
+          <div class="calc-result-number" id="calc-output">
+            600,000 วิว/เดือน
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-soft); margin-top: 10px;">
+          *ข้อสังเกต: หากตั้งเป้า 500,000 วิวสะสมตลอดชีพ จะไม่สามารถครอบคลุมต้นทุนรายเดือนได้ นี่คือบั๊กคลาสสิกที่พบบ่อยในการทดสอบรอบ 4
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 4: Compress Deep Dive -->
+    <section id="compress-guide">
+      <div class="section-header">
+        <span class="badge badge-cmp">คู่มือเจาะลึก 2</span>
+        <h2>เสาหลัก Compress: ย่อ Prompt อย่างไรให้ความสามารถอยู่ครบ</h2>
+        <p>การย่อไม่ใช่การลบคำสั่งทิ้ง แต่คือการย้ายความหมายไปไว้ในรูปแบบที่ประหยัดโทเคนและตีความได้แม่นยำกว่าเดิม</p>
+      </div>
+
+      <!-- 5 Steps of Safe Compression -->
+      <div class="step-list">
+        <div class="step-item step-cmp">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <div class="step-title">ตัดข้อความซ้ำซ้อนโดยสมบูรณ์ (Exact Duplicates)</div>
+            <div class="step-desc">ตรวจหาประโยคหรือข้อกำหนดที่กล่าวซ้ำในหลายๆ ส่วน แล้วเก็บไว้เพียงจุดเดียวที่ชัดเจนที่สุด</div>
+          </div>
+        </div>
+
+        <div class="step-item step-cmp">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <div class="step-title">รวมกฎที่พูดถึงเรื่องเดียวกัน (Merge Related Rules)</div>
+            <div class="step-desc">ผสานเงื่อนไขย่อยที่กระจายตัวอยู่ เช่น กฎเรื่องความปลอดภัย กฎเรื่องการอ้างอิง รวมเข้าเป็นหมวดหมู่เดียวกัน</div>
+          </div>
+        </div>
+
+        <div class="step-item step-cmp">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <div class="step-title">ใส่หมายเลขกำกับกฎ (R1, R2 …) แล้วใช้วิธีอ้างอิงเลข</div>
+            <div class="step-desc">แทนที่จะเขียนประโยคเดิมซ้ำในส่วนแสดงผล ให้ใช้คำว่า "ต้องปฏิบัติตามกฎ R3 และ R5" ช่วยประหยัดข้อความได้มหาศาล</div>
+          </div>
+        </div>
+
+        <div class="step-item step-cmp">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <div class="step-title">ย่อคำอธิบายที่ยืดเยื้อให้กลายเป็นกฎ 1 บรรทัด</div>
+            <div class="step-desc">ตัดความเรียงอธิบายเหตุผลออก เหลือไว้เฉพาะ "คำสั่งเชิงพฤติกรรม" (Actionable Instruction) ที่โมเดลต้องทำ</div>
+          </div>
+        </div>
+
+        <div class="step-item step-cmp">
+          <div class="step-badge">5</div>
+          <div class="step-content">
+            <div class="step-title">เขียนโครงสร้างคำสั่งเป็นอังกฤษ แต่คงหัวข้อผลลัพธ์เป็นไทยเต็ม</div>
+            <div class="step-desc">ภาษาอังกฤษใช้โทเคนน้อยกว่าและโมเดลเข้าใจโครงสร้างได้แม่นยำ ส่วนหัวข้อภาษาไทยจะช่วยให้ผู้อ่านปลายทางเข้าใจง่าย</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Traffic Light Guide -->
+      <h3 style="margin-top: 36px;">สัญญาณไฟจราจร: สิ่งที่ควรทำและข้อห้ามเด็ดขาดในการย่อ</h3>
+
+      <div class="traffic-grid">
+        <!-- Green -->
+        <div class="traffic-card t-green">
+          <div>
+            <span class="badge badge-opt">ไฟเขียว · ทำได้ดี</span>
+            <h4 style="margin-top: 8px;">ปลอดภัยและแนะนำ</h4>
+          </div>
+          <ul>
+            <li>
+              <span>✔</span>
+              <span><strong>ตั้งรหัสกฎ (R1, R2):</strong> อ้างอิงได้ตรงตัว ลดการเขียนซ้ำโดยโมเดลไม่สับสน</span>
+            </li>
+            <li>
+              <span>✔</span>
+              <span><strong>กำกับข้อความในวงเล็บ [ ]:</strong> ระบุว่าข้อความใน [ ] คือคำสั่ง ห้ามคัดลอกลงในผลลัพธ์</span>
+            </li>
+            <li>
+              <span>✔</span>
+              <span><strong>รักษาบล็อก SELF-CHECK:</strong> ย่อถ้อยคำให้สั้นลงได้ แต่ห้ามตัดรายการตรวจสอบทิ้ง</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Yellow -->
+        <div class="traffic-card t-yellow">
+          <div>
+            <span class="badge badge-cmp">ไฟเหลือง · ต้องระวัง</span>
+            <h4 style="margin-top: 8px;">พิจารณาเป็นกรณี</h4>
+          </div>
+          <ul>
+            <li>
+              <span>⚠</span>
+              <span><strong>ย่อหัวข้อผลลัพธ์เป็นอักษรย่อ:</strong> ผู้ใช้ทั่วไปมักอ่านไม่เข้าใจ ควรคงชื่อหัวข้อเต็มไว้</span>
+            </li>
+            <li>
+              <span>⚠</span>
+              <span><strong>เขียนกฎกว้างเกินขอบเขตเดิม:</strong> เช่น สั่งว่า "ทุกตัวเลขต้องมีแหล่งที่มา" จะทำให้ AI แปะป้าย "ไม่พบแหล่ง" เต็มหน้า</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Red -->
+        <div class="traffic-card t-red">
+          <div>
+            <span class="badge badge-bad">ไฟแดง · ห้ามทำเด็ดขาด</span>
+            <h4 style="margin-top: 8px;">มีความเสี่ยงสูงที่จะพัง</h4>
+          </div>
+          <ul>
+            <li>
+              <span>✕</span>
+              <span><strong>แปลง Prompt เป็น DSL หรือรหัสย่อ:</strong> จากการทดลองพบว่า ทำให้ข้อความโครงสร้างหลุดออกมา และอ้างลิงก์ผิด 2 ใน 5 จุด</span>
+            </li>
+            <li>
+              <span>✕</span>
+              <span><strong>ตัดตัวอย่างและเงื่อนไขขอบเขตทิ้ง:</strong> ทำให้โมเดลขาดบริบท และมักใช้คำตัดสินเด็ดขาดเกินจริง</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Prompts Studio -->
+    <section id="prompts-studio">
+      <div class="section-header">
+        <span class="badge badge-opt">Prompt สำเร็จรูป</span>
+        <h2>คลัง Prompt สำหรับนำไปใช้งานจริง (Ready-to-Use)</h2>
+        <p>นำ Prompt ผู้เชี่ยวชาญ 2 ตัวนี้ไปวางในโมเดลของคุณ (เช่น Claude, ChatGPT หรือ Gemini) แล้วตามด้วย Prompt ที่คุณต้องการปรับแต่ง</p>
+      </div>
+
+      <div class="callout callout-info" style="margin-bottom: 20px;">
+        <div class="callout-title">
+          <span aria-hidden="true">📌</span>
+          <span>วิธีใช้งานอย่างถูกต้อง</span>
+        </div>
+        <p>หากต้องการทั้งสองอย่าง ให้เริ่มจากรัน <strong>Prompt Optimizer</strong> ก่อนจนได้เนื้อหาที่ถูกต้องและซื่อตรง แล้วจึงนำผลลัพธ์ที่ได้ไปรันต่อด้วย <strong>Prompt Compressor</strong> เพื่อตัดทอนความยาว</p>
+      </div>
+
+      <!-- Studio Component -->
+      <div class="prompt-studio">
+        <!-- Tabs -->
+        <div class="studio-tabs" role="tablist" aria-label="เลือกดู Prompt">
+          <button id="tab-btn-opt" class="studio-tab-btn active tab-opt" role="tab" aria-selected="true" aria-controls="pane-opt" type="button">
+            <span>🎯</span>
+            <span>Prompt Optimizer (ตัวปรับความแม่น)</span>
+          </button>
+          <button id="tab-btn-cmp" class="studio-tab-btn tab-cmp" role="tab" aria-selected="false" aria-controls="pane-cmp" type="button">
+            <span>⚡</span>
+            <span>Prompt Compressor (ตัวย่อขนาด)</span>
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="studio-toolbar">
+          <div class="studio-meta">
+            <span id="studio-filename" style="font-weight: 600; color: var(--text-main);">prompt-optimizer.md</span>
+            <span id="studio-filesize">• 37 บรรทัด</span>
+          </div>
+
+          <div class="studio-actions">
+            <button id="copy-prompt-btn" class="btn btn-primary btn-sm" type="button">
+              <span id="copy-btn-icon" aria-hidden="true">📋</span>
+              <span id="copy-btn-text">คัดลอก Prompt</span>
+            </button>
+            <button id="download-prompt-btn" class="btn btn-secondary btn-sm" type="button" title="ดาวน์โหลดไฟล์ .md">
+              <span aria-hidden="true">💾</span>
+              <span>ดาวน์โหลด .md</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Code Content Area -->
+        <div id="studio-tabpanel" role="tabpanel" aria-labelledby="tab-btn-opt" class="code-container">
+          <pre id="code-display" class="code-pre" tabindex="0" aria-label="เนื้อหา Prompt แม่แบบ"></pre>
+        </div>
+      </div>
+
+      <!-- Reference Links -->
+      <div style="margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.95rem;">
+        <span>📂 <strong>ไฟล์ตัวอย่างประกอบ:</strong></span>
+        <a href="strategic-board-prompt-v2.md" target="_blank" rel="noopener">strategic-board-prompt-v2.md (Prompt บอร์ดกลยุทธ์ฉบับสมบูรณ์)</a>
+        <span>·</span>
+        <a href="gemini-test-review-2026-10-28.md" target="_blank" rel="noopener">gemini-test-review-2026-10-28.md (บันทึกผลตรวจละเอียดทุกลิงก์)</a>
+      </div>
+    </section>
+
+    <!-- Section 6: Pre-flight Checklist -->
+    <section id="checklist">
+      <div class="section-header">
+        <span class="badge badge-indigo">การประกันคุณภาพ (QA)</span>
+        <h2>เช็กลิสต์ตรวจความพร้อมก่อนปล่อย Prompt สู่ Production</h2>
+        <p>คลิกเพื่อตรวจสอบทีละข้อ เพื่อความมั่นใจสูงสุดว่า Prompt ของคุณพร้อมทำงานได้อย่างไร้ที่ติ</p>
+      </div>
+
+      <div class="checklist-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <span style="font-weight: 700; font-family: var(--font-heading);">ความสมบูรณ์ของแบบประเมิน</span>
+          <span id="checklist-counter" style="font-family: var(--font-mono); font-weight: 600; color: var(--opt);">0 / 6 ข้อ (0%)</span>
+        </div>
+
+        <div class="checklist-progress-bar-bg" aria-hidden="true">
+          <div id="checklist-progress" class="checklist-progress-bar"></div>
+        </div>
+
+        <ul class="check-items" id="check-list-group">
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>ความสามารถอยู่ครบ (Inventory Preserved):</strong> คำสั่ง บทบาท เงื่อนไข และโหมดทุกอย่างของเดิมยังคงทำงานได้ครบถ้วน</span>
+            </label>
+          </li>
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>หัวข้อผลลัพธ์เป็นภาษาไทยเต็ม:</strong> ไม่ใช้คำย่อภาษาอังกฤษหรือสัญลักษณ์ในหัวข้อที่ผู้ใช้ต้องอ่าน</span>
+            </label>
+          </li>
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>เปิดตรวจสอบลิงก์อ้างอิงจริง:</strong> คลิกลิงก์ที่โมเดลอ้างทุกหน้า ตรวจสอบว่ามีเนื้อหานั้นอยู่จริงตรงตามประเทศ/แพลตฟอร์ม</span>
+            </label>
+          </li>
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>ตัวเลขสอดคล้องกับสูตรคำนวณ:</strong> ค่าที่แสดงในหัวข้อต้องคำนวณได้จริง และมีป้ายกำกับ <code>(ประมาณการ)</code></span>
+            </label>
+          </li>
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>หน่วยและช่วงเวลาสอดคล้องกัน:</strong> ไม่นำตัวเลขสะสมตลอดชีพไปเปรียบเทียบกับต้นทุนรายเดือน</span>
+            </label>
+          </li>
+          <li>
+            <label class="check-label">
+              <input type="checkbox" class="chk-item">
+              <span><strong>บันทึกเวอร์ชันและผลการทดสอบ:</strong> มีบันทึกเปรียบเทียบคำตอบของฉบับเดิมและฉบับใหม่เก็บไว้เป็นประวัติ</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="container">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="#hero">กลับขึ้นด้านบน ↑</a>
+        <a href="https://github.com/OkayOkay101/prompt-optimize-compress" target="_blank" rel="noopener">GitHub Repository</a>
+        <a href="HANDOFF.md" target="_blank" rel="noopener">เอกสาร Handoff โครงการ</a>
+        <a href="README.md" target="_blank" rel="noopener">คู่มือ README</a>
+      </div>
+      <div class="footer-bottom">
+        <div>
+          ทดสอบจริงกับโมเดล <strong>Gemini 3.8 Flash</strong> · ผลลัพธ์อาจแตกต่างกันตามโมเดลและพารามิเตอร์ที่ใช้งาน
+        </div>
+        <div>
+          © 2026 Prompt Optimize & Compress Guide
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span aria-hidden="true">✓</span>
+    <span id="toast-text">คัดลอกข้อความสำเร็จ</span>
   </div>
-</section>
 
-<section id="tests">
-  <h2>ผลทดสอบกับ Gemini 4 รอบ</h2>
-  <div class="tbl"><table>
-    <thead><tr><th>รอบ</th><th>สิ่งที่ปรับ</th><th>ดีขึ้น</th><th>ยังผิด</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>ฉบับผสมแรก</td><td>—</td><td>อ้างลิงก์ผิดบริบท ตัวเลขในหัวข้อ (1,200) ไม่ตรงสูตร (850) เกณฑ์ไม่ตรงกันแต่ละส่วน</td></tr>
-      <tr><td>2</td><td>v2 ใส่เลขกฎและ SELF-CHECK</td><td>ตัวเลขและเกณฑ์ตรงกันแล้ว</td><td>ลิงก์ TikTok สิงคโปร์ใช้กับแผน YouTube วันที่ผิด ใช้คำเด็ดขาด</td></tr>
-      <tr><td>3</td><td>เพิ่มกฎลิงก์และเกณฑ์</td><td>ลิงก์ถูกครบ 4 หน้า เงื่อนไขหยุดแผนใช้ "หรือ"</td><td>ใช้บล็อกเก่าปี 2024 แทนหน้า help และไม่ประมาณรายได้</td></tr>
-      <tr><td>4</td><td>เพิ่มกฎรายได้และแหล่งปัจจุบัน</td><td>โครงสร้างดีที่สุด</td><td>บอกว่าหน้าเว็บ "ไม่ระบุวันที่" ทั้งที่มี และเอายอดวิวสะสมไปเทียบกับต้นทุนรายเดือน</td></tr>
-    </tbody>
-  </table></div>
-  <p class="note"><b>ข้อสังเกตหลัก:</b> ข้อผิดเรื่องวันที่และลิงก์ผิดหน้ากลับมาซ้ำ เพราะโมเดลน่าจะไม่ได้เปิดหน้าเว็บจริง แต่จำ URL มาจากความรู้เดิม prompt อย่างเดียวแก้ได้ไม่หมด ทางที่ได้ผลคือบังคับให้เขียน "(ยังไม่ได้เปิดยืนยัน)" แล้วให้คนตรวจลิงก์ซ้ำ</p>
-</section>
+  <!-- Raw Prompt Templates for Instant Offline & Robust Copying -->
+  <script type="text/plain" id="raw-optimizer">Role: ผู้เชี่ยวชาญปรับปรุงคุณภาพ prompt (Prompt Optimizer)
+Goal: Make the given prompt produce MORE ACCURATE and MORE HONEST answers. Length may grow if needed; correctness comes first. Do not shorten (that is the Compressor's job).
+OutputLang: TH (plain language a non-expert can follow). Keep the original output headers exactly unless the user asks to change them; headers stay full Thai, never abbreviated.
 
-<section id="optimize">
-  <span class="pill p-opt">Optimize</span>
-  <h2>ทำให้ prompt แม่นขึ้น</h2>
-  <ol class="steps">
-    <li><div><b>ทำรายการความสามารถ</b><span>ไล่ว่า prompt สั่งอะไรบ้าง เช่น บทบาท รูปแบบผลลัพธ์ กฎ โหมด และตัวอย่าง รายการนี้ห้ามหาย</span></div></li>
-    <li><div><b>เก็บข้อผิดจากผลจริง</b><span>เปิดลิงก์ที่ AI อ้างทุกลิงก์ ตรวจสูตรตัวเลข และดูว่าเกณฑ์ตรงกันทุกส่วนไหม</span></div></li>
-    <li><div><b>แปลงข้อผิดเป็นกฎ 1 บรรทัด</b><span>หนึ่งข้อผิดได้หนึ่งกฎ ใส่เลขกำกับ และอย่าเพิ่มกฎให้ปัญหาที่ยังไม่เคยเจอ</span></div></li>
-    <li><div><b>เพิ่มคำถามใน SELF-CHECK</b><span>ให้ AI ตรวจกฎที่มักผิดก่อนส่งคำตอบ โดยไม่ต้องพิมพ์ส่วนตรวจนี้ออกมา</span></div></li>
-    <li><div><b>ทดสอบซ้ำ แล้วจดผลคู่กับเวอร์ชัน</b><span>รอบหน้าจะได้รู้ว่ากฎแต่ละข้อเพิ่มเข้ามาเพราะอะไร</span></div></li>
-  </ol>
-  <h3>กฎพื้นฐานที่ได้จากการทดสอบ</h3>
-  <div class="tbl"><table>
-    <thead><tr><th>ปัญหาที่เจอ</th><th>กฎที่ใช้แก้</th></tr></thead>
-    <tbody>
-      <tr><td>ลิงก์มีอยู่จริง แต่หน้านั้นไม่ได้พูดเรื่องที่อ้าง</td><td>อ้าง URL ได้เมื่อหน้านั้นมีข้อความนั้นจริง ตรงแพลตฟอร์มและประเทศ</td></tr>
-      <tr><td>อ้างวันที่ทั้งที่ไม่ได้เปิดหน้า</td><td>หน้าที่ไม่ได้เปิดต้องเขียน "(ยังไม่ได้เปิดยืนยัน)" และห้ามพูดถึงวันที่</td></tr>
-      <tr><td>ใช้บล็อกประกาศเก่าแทนหน้าคู่มือปัจจุบัน</td><td>ใช้หน้า help ฉบับปัจจุบันก่อนบล็อกประกาศ</td></tr>
-      <tr><td>ตัวเลขในหัวข้อไม่ตรงกับสูตร</td><td>ติดป้าย "(ประมาณการ)" แสดงสูตร และตัวเลขต้องเท่ากับผลของสูตร</td></tr>
-      <tr><td>ยอดสะสมปนกับยอดรายเดือน</td><td>หนึ่งเกณฑ์ใช้หน่วยและช่วงเวลาเดียว ต้นทุนรายเดือนก็ต้องคิดจุดคุ้มทุนเป็นรายเดือน</td></tr>
-      <tr><td>เรียกเกณฑ์ที่ตั้งเองว่า "มาตรฐาน"</td><td>เรียกว่า "เกณฑ์ที่บอร์ดตั้ง" พร้อมเหตุผล 1 บรรทัด</td></tr>
-      <tr><td>ใช้คำเด็ดขาดเกินหลักฐาน</td><td>คำว่า "ถาวร" "ทันที" หรือ "ที่สุด" ต้องมีแหล่งรองรับ ถ้าไม่มีให้เปลี่ยนเป็นคำที่ไม่เด็ดขาด</td></tr>
-    </tbody>
-  </table></div>
-  <p>ตัวอย่างจุดคุ้มทุนที่ถูก: ต้นทุนต่อเดือน ÷ RPM × 1,000 = วิวต่อเดือนที่ต้องได้ เช่น ที่ RPM $0.05 ได้ 571,429 วิวต่อเดือน ไม่ใช่ 500,000 วิวสะสม</p>
-</section>
+INPUT: the user pastes (1) a prompt and, if available, (2) sample answers or test results from that prompt. If no prompt is given, ask for it and stop.
 
-<section id="compress">
-  <span class="pill p-cmp">Compress</span>
-  <h2>ย่อ prompt โดยความสามารถไม่หาย</h2>
-  <p>ย่อ prompt คือการย้ายความหมายไปไว้ในรูปที่สั้นกว่า ไม่ใช่การตัดคำทิ้ง ในการทดสอบ ฉบับที่ย่อหนักสุดแบบรหัสย่อทำให้ข้อความเทมเพลตหลุดออกมาในคำตอบ และอ้างลิงก์ผิด 2 จาก 5</p>
-  <ol class="steps c">
-    <li><div><b>ตัดข้อความที่ซ้ำกันตรงตัว</b></div></li>
-    <li><div><b>รวมกฎที่พูดเรื่องเดียวกัน</b></div></li>
-    <li><div><b>ใส่เลขกฎ แล้วอ้างเลขแทนการเขียนซ้ำ</b></div></li>
-    <li><div><b>ย่อคำอธิบายยาวเป็นกฎ 1 บรรทัด</b></div></li>
-    <li><div><b>เขียนคำสั่งเป็นภาษาอังกฤษ แต่หัวข้อผลลัพธ์เป็นไทยเต็ม</b></div></li>
-  </ol>
-  <div class="tbl"><table>
-    <thead><tr><th>เทคนิค</th><th>ผล</th><th>เหตุผล</th></tr></thead>
-    <tbody>
-      <tr><td>ใส่เลขกฎและอ้างเลข</td><td><span class="pill p-opt">ใช้ได้</span></td><td>ตัดข้อความซ้ำได้มาก และโมเดลอ้างกฎได้ตรงตัว</td></tr>
-      <tr><td>บอกว่าข้อความใน [ ] เป็นคำสั่ง ห้ามคัดลอกลงคำตอบ</td><td><span class="pill p-opt">ใช้ได้</span></td><td>กันข้อความเทมเพลตหลุดออกมาในคำตอบ</td></tr>
-      <tr><td>ย่อหัวข้อเป็นคำย่อหรือสัญลักษณ์</td><td><span class="pill p-cmp">ระวัง</span></td><td>ผู้ใช้อ่านยาก ผู้ใช้ชอบหัวข้อไทยเต็มมากกว่า</td></tr>
-      <tr><td>เขียนกฎกว้างเกินขอบเขตเดิม</td><td><span class="pill p-cmp">ระวัง</span></td><td>เช่น "ทุกตัวเลขต้องมีแหล่ง" ทำให้ป้าย "ไม่พบแหล่ง" ขึ้นเต็มคำตอบ</td></tr>
-      <tr><td>แปลงทั้ง prompt เป็นรหัสย่อหรือ DSL</td><td><span class="pill p-bad">ห้าม</span></td><td>ข้อความเทมเพลตหลุดออกมา และอ้างลิงก์ผิด</td></tr>
-      <tr><td>ตัดตัวอย่างและเงื่อนไขขอบเขต</td><td><span class="pill p-bad">ห้าม</span></td><td>โมเดลใช้คำเด็ดขาดเกินกว่าที่แหล่งพูดไว้</td></tr>
-    </tbody>
-  </table></div>
-</section>
+RULES
+P1 Inventory first: List every capability of the original as short named items (role, output format, each rule, each mode/branch, each guardrail, each example). Nothing on this list may be lost.
+P2 Failure-driven: If sample answers are given, list each concrete error (wrong link, number not matching formula, mismatched threshold, absolute wording, wrong date) and turn each into ONE one-line rule. Do not add rules for problems never observed, except the baseline rules in P3.
+P3 Baseline honesty rules (add if missing):
+  a. URL only if that exact page states the claim, same scope/platform/country. Unopened page -> append "(ยังไม่ได้เปิดยืนยัน)" and never state its date or "ไม่ระบุวันที่".
+  b. Prefer current help/docs pages over old announcement blogs.
+  c. CITE only external facts; board/model-set thresholds need a one-line reason, not a citation, and must never be called "มาตรฐาน" or "เกณฑ์ของแพลตฟอร์ม".
+  d. Every estimate tagged "(ประมาณการ)" with arithmetic or a named source; label value must equal its formula.
+  e. One threshold, one unit, one period, reused verbatim in every section; never mix cumulative and per-period. Break-even uses the same period as cost (monthly cost -> monthly break-even).
+  f. Kill-switch conditions numeric and joined by "หรือ".
+  g. Absolute words ("ถาวร", "ทันที", "ที่สุด") only with a source; otherwise soften.
+P4 Number every rule (R1, R2 …) and let sections refer to rule numbers.
+P5 Mark template text: text inside [ ] is instruction and must never be copied into the answer.
+P6 Add or update a silent SELF-CHECK block covering the rules most likely to be broken, each item naming its rule number.
+P7 Never weaken safety, honesty, citation or refusal rules.
+P8 Do not claim the new prompt works better until tested. State that a human must still verify links, because many models do not open web pages.
 
-<section id="prompts">
-  <h2>Prompt สำเร็จรูป</h2>
-  <p>คัดลอกไปวางใน Claude, ChatGPT หรือ Gemini แล้ววาง prompt ที่ต้องการปรับต่อท้าย ถ้าใช้ทั้งสองตัว ให้รัน Optimize ก่อนแล้วค่อย Compress ทั้งสองตัวยังไม่ได้ทดสอบกับ AI ตัวอื่น</p>
-  <div class="prompt" data-src="prompt-optimizer.md">
-    <div class="bar"><span>prompt-optimizer.md</span><div><button class="toggle" type="button" aria-expanded="false">แสดง prompt</button><button class="primary copy" type="button">คัดลอก prompt</button></div></div>
-    <pre hidden>กำลังโหลด…</pre>
-  </div>
-  <div class="prompt" data-src="prompt-compressor.md">
-    <div class="bar"><span>prompt-compressor.md</span><div><button class="toggle" type="button" aria-expanded="false">แสดง prompt</button><button class="primary copy" type="button">คัดลอก prompt</button></div></div>
-    <pre hidden>กำลังโหลด…</pre>
-  </div>
-  <p>ดู prompt ตัวอย่างที่ผ่านการปรับแล้วได้ที่ <a href="strategic-board-prompt-v2.md">strategic-board-prompt-v2.md</a> และผลตรวจละเอียดทุกลิงก์ที่ <a href="gemini-test-review-2026-10-28.md">gemini-test-review-2026-10-28.md</a></p>
-</section>
+OUTPUT (use these Thai headers exactly)
+📋 รายการความสามารถของ prompt เดิม: [numbered list from P1]
+🐞 ข้อผิดที่พบและกฎที่ใช้แก้: [table: ข้อผิด | ตัวอย่างจากผลจริง | กฎใหม่ (เลข R) — or "ไม่มีผลตัวอย่าง ใช้เฉพาะกฎพื้นฐาน P3"]
+🛠️ Prompt ฉบับปรับปรุง: [full prompt in one code block, ready to copy]
+🔍 สิ่งที่เปลี่ยน: [table: ส่วนเดิม | เปลี่ยนเป็น | เหตุผล]
+⚠️ จุดที่ prompt แก้ไม่ได้: [e.g. model not opening pages -> needs human link check]
+🧪 ชุดทดสอบ: [3–7 inputs covering every mode/branch, each with what a correct answer must contain]
 
-<section id="checklist">
-  <h2>เช็กลิสต์ก่อนใช้ prompt ฉบับใหม่</h2>
-  <ul class="check">
-    <li>ทุกข้อในรายการความสามารถยังอยู่ครบ</li>
-    <li>หัวข้อผลลัพธ์เหมือนเดิมทุกตัวอักษร</li>
-    <li>รันชุดทดสอบทั้งฉบับเดิมและฉบับใหม่ แล้วเทียบผลแล้ว</li>
-    <li>เปิดลิงก์ที่โมเดลอ้างทุกลิงก์ และหน้านั้นพูดเรื่องที่อ้างจริง</li>
-    <li>ตัวเลขทุกตัวตรงกับสูตร และเกณฑ์ตรงกันทุกส่วน</li>
-    <li>จดชื่อเวอร์ชันและผลทดสอบไว้คู่กัน</li>
-  </ul>
-</section>
+SELF-CHECK (silent; fix before sending)
+1. Every P1 item still present?
+2. Every observed error mapped to exactly one rule?
+3. Baseline rules P3 a–g present where relevant?
+4. Headers unchanged and full Thai?
+5. No guardrail weakened; untested status stated?</script>
 
-</main>
-<footer class="wrap">ทดสอบกับ Gemini 3.8 Flash เมื่อเดือนตุลาคม 2026 · ผลลัพธ์ขึ้นกับโมเดลและเวอร์ชันที่ใช้</footer>
-<p class="sr" aria-live="polite" id="live"></p>
+  <script type="text/plain" id="raw-compressor">Role: ผู้เชี่ยวชาญย่อ prompt (Prompt Compressor)
+Goal: Make the given prompt SHORTER without losing any capability. A shorter prompt the model misreads is a failure. Do not add new rules (that is the Optimizer's job).
+OutputLang: TH (plain language a non-expert can follow). Keep the original output headers exactly; never shorten them to abbreviations or symbols.
 
-<script>
-document.querySelectorAll('.prompt').forEach(function(box){
-  var pre=box.querySelector('pre'),loaded=false;
-  function load(){
-    if(loaded)return Promise.resolve();
-    return fetch(box.dataset.src).then(function(r){if(!r.ok)throw 0;return r.text()})
-      .then(function(t){pre.textContent=t;loaded=true})
-      .catch(function(){pre.textContent='โหลดไม่สำเร็จ เปิดไฟล์ '+box.dataset.src+' โดยตรงแทน'});
-  }
-  box.querySelector('.toggle').addEventListener('click',function(){
-    var b=this;load().then(function(){pre.hidden=!pre.hidden;b.textContent=pre.hidden?'แสดง prompt':'ซ่อน prompt';b.setAttribute('aria-expanded',String(!pre.hidden))});
-  });
-  box.querySelector('.copy').addEventListener('click',function(){
-    var b=this;load().then(function(){
-      function done(m){b.textContent=m;document.getElementById('live').textContent=m;setTimeout(function(){b.textContent='คัดลอก prompt'},1800)}
-      try{navigator.clipboard.writeText(pre.textContent).then(function(){done('คัดลอกแล้ว')},function(){done('คัดลอกไม่ได้ ให้กดแสดง prompt แล้วเลือกข้อความเอง')})}
-      catch(e){done('คัดลอกไม่ได้ ให้กดแสดง prompt แล้วเลือกข้อความเอง')}
-    });
-  });
-});
-</script>
+INPUT: the user pastes a prompt. If none is given, ask for it and stop.
+
+RULES
+C1 Inventory first: List every capability as short named items (role, output format, each rule, each mode/branch, each guardrail, each example, each scope condition). This list is the contract; nothing may disappear.
+C2 Safe compression, in this order only:
+  a. Remove exact duplicates.
+  b. Merge rules that say the same thing.
+  c. Number rules (R1, R2 …) and refer to numbers instead of repeating text.
+  d. Turn long explanations into one-line rules.
+  e. Write instructions in concise English while keeping user-facing headers in full Thai.
+C3 Never: convert to a cryptic DSL or codes; shorten headers; drop examples, scope conditions or edge cases; widen a rule beyond its original scope (e.g. "every number needs a source" when the original meant external facts only).
+C4 Keep the meaning of guardrails (honesty, safety, citation, refusal, "(ยังไม่ได้เปิดยืนยัน)", threshold-unit rules) fully; reword only.
+C5 Keep or add one line: text inside [ ] is instruction and must never be copied into the answer.
+C6 Keep the SELF-CHECK block; you may shorten its wording but not remove items.
+C7 If a cut is uncertain, keep the text and list it under จุดเสี่ยง.
+C8 Do not claim the compressed prompt behaves the same until tested old vs new.
+
+OUTPUT (use these Thai headers exactly)
+📋 รายการความสามารถของ prompt เดิม: [numbered list from C1]
+✂️ Prompt ฉบับย่อ: [full prompt in one code block, ready to copy]
+🗺️ ตารางตรวจความครบ: [table: ความสามารถ (C1 item) | อยู่ตรงไหนในฉบับย่อ]
+🔍 สิ่งที่ตัดหรือรวม: [table: ส่วนเดิม | เปลี่ยนเป็น | เทคนิค C2 ข้อไหน]
+📏 ขนาด: [คำหรือตัวอักษร เดิม → ใหม่, % ที่ลดลง พร้อมแสดงการคำนวณ]
+⚠️ จุดเสี่ยง: [capabilities that might behave differently, or "ไม่มี"]
+🧪 ชุดทดสอบ: [3–7 inputs covering every mode/branch, each with what a correct answer must contain, to run old vs new]
+
+SELF-CHECK (silent; fix before sending)
+1. Every C1 item mapped in ตารางตรวจความครบ?
+2. Every header, example or scope condition removed or widened?
+3. No guardrail weakened?
+4. Size numbers match the arithmetic?</script>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    (function () {
+      'use strict';
+
+      // 1. Theme Toggle & Persistence
+      var themeBtn = document.getElementById('theme-btn');
+      var themeIcon = document.getElementById('theme-icon');
+      var themeMeta = document.getElementById('theme-meta');
+      var html = document.documentElement;
+
+      function getInitialTheme() {
+        var saved = localStorage.getItem('theme');
+        if (saved) return saved;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function setTheme(theme) {
+        if (theme === 'dark') {
+          html.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀️';
+          themeBtn.setAttribute('title', 'เปลี่ยนเป็นธีมสว่าง');
+          themeMeta.setAttribute('content', '#0b0f17');
+        } else {
+          html.removeAttribute('data-theme');
+          themeIcon.textContent = '🌙';
+          themeBtn.setAttribute('title', 'เปลี่ยนเป็นธีมมืด');
+          themeMeta.setAttribute('content', '#f8fafc');
+        }
+        localStorage.setItem('theme', theme);
+      }
+
+      setTheme(getInitialTheme());
+
+      themeBtn.addEventListener('click', function () {
+        var current = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        setTheme(current === 'dark' ? 'light' : 'dark');
+      });
+
+      // 2. Break-even Calculator
+      var costInput = document.getElementById('cost-input');
+      var rpmInput = document.getElementById('rpm-input');
+      var calcOutput = document.getElementById('calc-output');
+
+      function updateCalculator() {
+        var cost = parseFloat(costInput.value) || 0;
+        var rpm = parseFloat(rpmInput.value) || 0.01;
+        if (rpm <= 0) rpm = 0.01;
+        var monthlyViews = Math.round((cost / rpm) * 1000);
+        calcOutput.textContent = monthlyViews.toLocaleString('th-TH') + ' วิว/เดือน';
+      }
+
+      costInput.addEventListener('input', updateCalculator);
+      rpmInput.addEventListener('input', updateCalculator);
+
+      // 3. Prompt Studio (Tabs & Code Switcher)
+      var tabOpt = document.getElementById('tab-btn-opt');
+      var tabCmp = document.getElementById('tab-btn-cmp');
+      var studioFilename = document.getElementById('studio-filename');
+      var studioFilesize = document.getElementById('studio-filesize');
+      var codeDisplay = document.getElementById('code-display');
+      var studioTabpanel = document.getElementById('studio-tabpanel');
+      var copyPromptBtn = document.getElementById('copy-prompt-btn');
+      var downloadPromptBtn = document.getElementById('download-prompt-btn');
+
+      var rawOpt = document.getElementById('raw-optimizer').textContent.trim();
+      var rawCmp = document.getElementById('raw-compressor').textContent.trim();
+
+      var currentPromptKey = 'optimizer';
+
+      function renderPrompt(key) {
+        currentPromptKey = key;
+        if (key === 'optimizer') {
+          studioTabpanel.setAttribute('aria-labelledby', 'tab-btn-opt');
+          tabOpt.classList.add('active');
+          tabOpt.setAttribute('aria-selected', 'true');
+          tabCmp.classList.remove('active');
+          tabCmp.setAttribute('aria-selected', 'false');
+          studioFilename.textContent = 'prompt-optimizer.md';
+          studioFilesize.textContent = '• 37 บรรทัด · ' + rawOpt.length + ' ตัวอักษร';
+          codeDisplay.textContent = rawOpt;
+        } else {
+          studioTabpanel.setAttribute('aria-labelledby', 'tab-btn-cmp');
+          tabCmp.classList.add('active');
+          tabCmp.setAttribute('aria-selected', 'true');
+          tabOpt.classList.remove('active');
+          tabOpt.setAttribute('aria-selected', 'false');
+          studioFilename.textContent = 'prompt-compressor.md';
+          studioFilesize.textContent = '• 35 บรรทัด · ' + rawCmp.length + ' ตัวอักษร';
+          codeDisplay.textContent = rawCmp;
+        }
+      }
+
+      tabOpt.addEventListener('click', function () { renderPrompt('optimizer'); });
+      tabCmp.addEventListener('click', function () { renderPrompt('compressor'); });
+
+      // Initialize with optimizer
+      renderPrompt('optimizer');
+
+      // 4. Toast Notification
+      var toast = document.getElementById('toast');
+      var toastText = document.getElementById('toast-text');
+      var toastTimer = null;
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove('show');
+        }, 2200);
+      }
+
+      // Copy Prompt Action
+      copyPromptBtn.addEventListener('click', function () {
+        var textToCopy = currentPromptKey === 'optimizer' ? rawOpt : rawCmp;
+        var btnText = document.getElementById('copy-btn-text');
+        var btnIcon = document.getElementById('copy-btn-icon');
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(textToCopy).then(function () {
+            btnText.textContent = 'คัดลอกสำเร็จ!';
+            btnIcon.textContent = '✓';
+            showToast('คัดลอก Prompt ลงคลิปบอร์ดแล้ว');
+            setTimeout(function () {
+              btnText.textContent = 'คัดลอก Prompt';
+              btnIcon.textContent = '📋';
+            }, 1800);
+          }).catch(function () {
+            fallbackCopy(textToCopy);
+          });
+        } else {
+          fallbackCopy(textToCopy);
+        }
+      });
+
+      function fallbackCopy(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showToast('คัดลอก Prompt ลงคลิปบอร์ดแล้ว');
+        } catch (err) {
+          showToast('กรุณากดเลือกและคัดลอกข้อความในกล่องโดยตรง');
+        }
+        document.body.removeChild(textarea);
+      }
+
+      // Download .md Action
+      downloadPromptBtn.addEventListener('click', function () {
+        var text = currentPromptKey === 'optimizer' ? rawOpt : rawCmp;
+        var filename = currentPromptKey === 'optimizer' ? 'prompt-optimizer.md' : 'prompt-compressor.md';
+        var blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('กำลังดาวน์โหลด ' + filename);
+      });
+
+      // 5. Pre-flight Checklist Progress
+      var checkItems = document.querySelectorAll('.chk-item');
+      var progressFill = document.getElementById('checklist-progress');
+      var counterLabel = document.getElementById('checklist-counter');
+
+      function updateChecklistProgress() {
+        var total = checkItems.length;
+        var checkedCount = 0;
+        checkItems.forEach(function (chk) {
+          var label = chk.closest('.check-label');
+          if (chk.checked) {
+            checkedCount++;
+            if (label) label.classList.add('checked');
+          } else {
+            if (label) label.classList.remove('checked');
+          }
+        });
+
+        var percent = Math.round((checkedCount / total) * 100);
+        progressFill.style.width = percent + '%';
+        counterLabel.textContent = checkedCount + ' / ' + total + ' ข้อ (' + percent + '%)';
+        if (checkedCount === total) {
+          counterLabel.textContent = checkedCount + ' / ' + total + ' ข้อ (พร้อมใช้งาน 100% ✓)';
+        }
+      }
+
+      checkItems.forEach(function (chk) {
+        chk.addEventListener('change', updateChecklistProgress);
+      });
+
+      // 6. Active Navigation Spy
+      var sections = document.querySelectorAll('section[id], header[id]');
+      var navLinks = document.querySelectorAll('.nav-menu a');
+
+      function onScroll() {
+        var scrollPos = window.scrollY + 100;
+        sections.forEach(function (sec) {
+          var top = sec.offsetTop;
+          var height = sec.offsetHeight;
+          var id = sec.getAttribute('id');
+          if (scrollPos >= top && scrollPos < top + height) {
+            navLinks.forEach(function (link) {
+              if (link.getAttribute('href') === '#' + id) {
+                link.classList.add('active');
+              } else {
+                link.classList.remove('active');
+              }
+            });
+          }
+        });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+  </script>
 </body>
 </html>
